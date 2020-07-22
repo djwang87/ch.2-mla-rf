@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+<Document>
+	<name>tag5710</name>
+	<open>1</open>
+	<StyleMap id="mdi">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_open-diamond_copy0</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_open-diamond_copy0</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="sn_open-diamond_copy0">
+		<IconStyle>
+			<scale>1.2</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/open-diamond.png</href>
+			</Icon>
+		</IconStyle>
+		<LabelStyle>
+			<color>ff1145ff</color>
+		</LabelStyle>
+	</Style>
+	<Style id="sh_open-diamond_copy0">
+		<IconStyle>
+			<scale>1.4</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/open-diamond.png</href>
+			</Icon>
+		</IconStyle>
+		<LabelStyle>
+			<color>ff1145ff</color>
+		</LabelStyle>
+	</Style>
+	<Folder>
+		<name>Points</name>
+		<visibility>0</visibility>
+		<Placemark>
+			<name>1</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:02:17;
+0.4km/h; 147deg; 3.6km/h; 18.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752455,1.390691,18</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>2</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:03:11;
+0.5km/h; 145deg; 4.1km/h; 29.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752493,1.390605,29</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>3</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:04:11;
+0.8km/h; 320deg; 3.7km/h; 30.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752525,1.390573,30</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>4</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:05:11;
+0.2km/h; 147deg; 1.4km/h; 21.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752477,1.390674,21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>5</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:06:10;
+0.3km/h; 326deg; 2.1km/h; 18.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752471,1.390720,18</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>6</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:07:12;
+0.4km/h; 0deg; 2.8km/h; 23.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752470,1.390655,23</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>7</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:08:13;
+1.7km/h; 330deg; 7.0km/h; 12.6m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752461,1.390757,12</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>8</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:09:12;
+0.3km/h; 147deg; 1.9km/h; 30.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752492,1.390670,30</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>9</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:10:11;
+1.7km/h; 0deg; 5.1km/h; 29.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752582,1.390811,29</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>10</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:11:26;
+0.3km/h; 0deg; 2.2km/h; 44.7m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752689,1.390849,44</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>11</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:12:13;
+0.1km/h; 64deg; 5.5km/h; 40.6m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752583,1.390859,40</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>13</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:14:13;
+1.8km/h; 163deg; 2.8km/h; 23.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752530,1.390768,23</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>14</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:15:07;
+0.3km/h; 0deg; 1.8km/h; 24.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752410,1.390643,24</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>15</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:16:06;
+4.5km/h; 143deg; 1.0km/h; 18.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752530,1.390555,18</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>16</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:17:07;
+5.1km/h; 159deg; 2.3km/h; 23.0m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752735,1.389913,22</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>17</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:18:10;
+3.5km/h; 60deg; 1.8km/h; 16.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752977,1.389525,16</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>18</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:19:09;
+4.1km/h; 1deg; 2.2km/h; 27.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752993,1.390205,27</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>19</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:20:11;
+0.4km/h; 0deg; 2.5km/h; 22.4m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752962,1.390352,22</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>20</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:21:07;
+4.0km/h; 286deg; 3.3km/h; 20.4m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752923,1.390326,20</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>21</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:22:11;
+0.4km/h; 0deg; 1.3km/h; 23.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.753058,1.390310,23</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>22</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:23:13;
+0.7km/h; 0deg; 3.3km/h; -5.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752773,1.390424,-5</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>23</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:24:12;
+1.8km/h; 251deg; 2.4km/h; 21.9m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752894,1.390789,21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>24</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:25:08;
+4.3km/h; 346deg; 1.5km/h; 17.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752726,1.391408,17</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>25</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:26:13;
+4.5km/h; 3deg; 2.4km/h; 20.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752645,1.392138,20</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>26</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:27:10;
+0.5km/h; 61deg; 2.0km/h; 34.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752696,1.392321,34</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>27</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:28:12;
+0.6km/h; 0deg; 3.3km/h; 13.0m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752588,1.392344,12</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>28</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:29:10;
+0.6km/h; 232deg; 4.2km/h; 37.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752711,1.392331,37</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>29</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:30:06;
+1.3km/h; 309deg; 2.2km/h; 29.9m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752688,1.392333,29</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>30</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:31:12;
+5.6km/h; 322deg; 3.6km/h; 20.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752630,1.392443,20</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>31</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:32:12;
+2.9km/h; 0deg; 3.9km/h; 21.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752452,1.393169,21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>32</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:33:09;
+2.0km/h; 355deg; 1.9km/h; 20.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752366,1.393757,20</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>33</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:34:10;
+3.6km/h; 194deg; 1.2km/h; 17.6m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752411,1.393737,17</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>34</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:34:38;
+0.9km/h; 197deg; 2.7km/h; 15.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752325,1.393658,15</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>35</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:35:08;
+1.0km/h; 0deg; 4.4km/h; 31.7m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752402,1.393637,31</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>36</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:35:37;
+0.3km/h; 0deg; 2.3km/h; 26.9m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752411,1.393650,26</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>37</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:36:06;
+1.0km/h; 291deg; 2.4km/h; 11.7m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752360,1.393663,11</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>38</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:36:37;
+0.2km/h; 248deg; 2.2km/h; 16.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752400,1.393645,16</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>39</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:37:09;
+1.3km/h; 0deg; 2.2km/h; 14.0m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752346,1.393617,14</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>40</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:38:06;
+0.5km/h; 0deg; 2.2km/h; 25.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752400,1.393642,25</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>41</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:39:06;
+3.6km/h; 186deg; 2.1km/h; 19.6m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752491,1.393398,19</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>42</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:40:07;
+4.0km/h; 181deg; 1.3km/h; 20.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752600,1.392691,20</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>43</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:41:08;
+3.2km/h; 161deg; 2.3km/h; 27.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752739,1.391971,27</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>44</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:42:15;
+3.1km/h; 209deg; 3.1km/h; 21.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752341,1.391415,21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>45</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:43:14;
+5.3km/h; 187deg; 1.4km/h; 28.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752569,1.390740,28</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>46</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:44:11;
+1.9km/h; 0deg; 7.7km/h; 22.6m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752457,1.390636,22</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>47</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:45:20;
+1.4km/h; 0deg; 4.3km/h; 48.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752545,1.390660,48</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>48</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:46:29;
+1.1km/h; 0deg; 7.9km/h; 68.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752581,1.390585,68</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>49</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:47:18;
+1.4km/h; 0deg; 10.9km/h; -13.0m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752366,1.390744,-12</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>50</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:48:16;
+2.6km/h; 104deg; 1.9km/h; 21.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752462,1.390640,21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>51</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:49:06;
+6.4km/h; 256deg; 2.3km/h; 14.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.751910,1.390716,14</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>53</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:51:07;
+4.0km/h; 114deg; 0.8km/h; 23.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.750957,1.390943,23</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>54</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:52:07;
+4.6km/h; 115deg; 1.4km/h; 18.1m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.751660,1.390791,18</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>55</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:53:06;
+2.9km/h; 123deg; 2.2km/h; 14.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752360,1.390663,14</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>56</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:54:12;
+0.3km/h; 0deg; 3.0km/h; 27.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752466,1.390675,27</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>57</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:55:13;
+0.6km/h; 0deg; 3.5km/h; 38.3m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752448,1.390699,38</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>58</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:56:20;
+0.2km/h; 0deg; 3.8km/h; 34.5m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752467,1.390735,34</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>59</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:57:14;
+4.2km/h; 0deg; 11.9km/h; 34.2m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752461,1.390644,34</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>60</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:58:20;
+0.4km/h; 1deg; 3.9km/h; 33.9m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752504,1.390643,33</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>61</name>
+			<visibility>0</visibility>
+			<description>tag5710 Tu, 21.7.2020
+GPSTIME 01:59:14;
+0.9km/h; 358deg; 10.1km/h; 40.8m</description>
+			<styleUrl>#mdi</styleUrl>
+			<Point>
+				<coordinates>103.752503,1.390711,40</coordinates>
+			</Point>
+		</Placemark>
+	</Folder>
+	<Placemark>
+		<name>Line</name>
+		<Style>
+		<LineStyle>
+			<color>ff0000e6</color>
+			<width>4</width>
+		</LineStyle>
+		</Style>
+		<LineString>
+			<tessellate>1</tessellate>
+			<coordinates>
+103.752455,1.390691,0 103.752493,1.390605,0 103.752525,1.390573,0 103.752477,1.390674,0 103.752471,1.390720,0 103.752470,1.390655,0 103.752461,1.390757,0 103.752492,1.390670,0 103.752582,1.390811,0 103.752689,1.390849,0 103.752583,1.390859,0 103.752530,1.390768,0 103.752410,1.390643,0 103.752530,1.390555,0 103.752735,1.389913,0 103.752977,1.389525,0 103.752993,1.390205,0 103.752962,1.390352,0 103.752923,1.390326,0 103.753058,1.390310,0 103.752773,1.390424,0 103.752894,1.390789,0 103.752726,1.391408,0 103.752645,1.392138,0 103.752696,1.392321,0 103.752588,1.392344,0 103.752711,1.392331,0 103.752688,1.392333,0 103.752630,1.392443,0 103.752452,1.393169,0 103.752366,1.393757,0 103.752411,1.393737,0 103.752325,1.393658,0 103.752402,1.393637,0 103.752411,1.393650,0 103.752360,1.393663,0 103.752400,1.393645,0 103.752346,1.393617,0 103.752400,1.393642,0 103.752491,1.393398,0 103.752600,1.392691,0 103.752739,1.391971,0 103.752341,1.391415,0 103.752569,1.390740,0 103.752457,1.390636,0 103.752545,1.390660,0 103.752581,1.390585,0 103.752366,1.390744,0 103.752462,1.390640,0 103.751910,1.390716,0 103.750957,1.390943,0 103.751660,1.390791,0 103.752360,1.390663,0 103.752466,1.390675,0 103.752448,1.390699,0 103.752467,1.390735,0 103.752461,1.390644,0 103.752504,1.390643,0 103.752503,1.390711,0 
+			</coordinates>
+		</LineString>
+	</Placemark>
+</Document>
+</kml>

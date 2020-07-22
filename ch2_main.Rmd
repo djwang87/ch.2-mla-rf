@@ -1,0 +1,232 @@
+---
+title: "chapter 2 - RF model"
+author: "Dajun Wang"
+date: "7/20/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r global options, cache=FALSE, include=FALSE}
+set.seed(2807)
+knitr::opts_chunk$set(fig.pos = 'H') #to set all images to top
+knitr::read_chunk('ch2-main.Rmd')
+options(tinytex.verbose = TRUE)
+```
+
+```{r setup, include=FALSE}
+list.of.packages <- c("lubridate", "dplyr", "ggplot2","randomForest", "corrplot", "knitr", "glmm", "tinytex","xtable","ggcorrplot","stargazer","kableExtra", "captioner","formattable", "reshape2", "lme4") 
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (length(new.packages)) install.packages(unlist(new.packages))
+lapply(list.of.packages, require, character.only = T)
+
+options(tibble.print_max = Inf) # To show all rows
+options(tibble.width = Inf) # To show all columns; Inf controls value
+
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+
+# Introduction
+
+
+# Material and methods
+
+We used wildlife tracking collars (e-obs gmbh) equipped with tri-axial accelerometers sampling continuously at 10Hz to monitor behaviour in domestic and free-roaming dogs. The wildlife tracking collar (hence tri-axial accelerometer) was mounted such that the x-, y-, and z- axes were parallel to the transverse, the anterior-posterior, and the dorsal-ventral planes of the animal, respectively. Nine adult dogs (of German Shepard and Golden Retriever breeds) were selected and collared; all nine dogs were well-trained individuals that could reliably perform the selected repertoire of movement behaviours (see Table 1 for more information) while being off-leash and under the instructions of their trainer. All collared domestic dogs were instructed to perform a specific repertoire of behaviours to perform (see Table 1 for more information) and their performance was recorded with a video camera. Three trials per dog was conducted for this component and a total of 270 minutes of recorded behavioural observations for the collared domestic dogs were obtained.
+
+All video footages of the domestic dogs were reviewed and the performed behaviours were categorized into impactful (e.g., walking, running, eating, foraging) or non-impactful (e.g., sitting, standing, resting) activities. Video footages were binned into 2-second "bursts" encompassing of only one dog behaviour (Table 1) and the corresponding accelerometer data was extracted for analysis. All performed (and observed) dog behaviours were limited into the above seven categories (Table 1), and behavioural transitions were not catalogued since they occurred very quickly (≤1s). Footages and accelerometer data were binned into two-second windows as this duration accommodated at least two full strides for motion-based dog behaviour (i.e., walking, foraging).
+
+Random Forests (RF) [@Lush2016b;@Graf2015d] was selected as the modeling tool for predicting unobserved behaviours in wild animals based on measurements of observed behaviours in captive animals. Random Forests is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that are not easily fitted by traditional methods such as generalized linear models [@Cutler2007]. Random Forests are capable of making accurate predictions from datasets with highly correlated predictor variables and identify the importance measures of each conditional variable. This capability identifies the extent of which a specific predictor variable influences the algorithm's classification accuracy [@Cutler2007]; a higher measure of importance in a predictor variable demonstrates the greater influence it has in comparison to the other predictor variables used in the model [@Cutler2007].
+
+To build the RF model to predict the seven classes of dog behaviour (Table 1), a series of summary statistics (mean, min, max, kurtosis, skewness, range, correlation, standard deviation) for all three axes were applied onto each burst of accelerometer data to obtain the predictor variables. Subsequently, 500 classification trees were fitted onto a selected subsample (n = 29260, without replacement) of domestic dog accelerometer data using a random subset of the 21 predictor variables for each split in the tree. Predictions made by all trees for each observation were then tallied and prediction accuracies were calculated by comparing the predicted and actual classifications. The 'randomForest' package [@Liaw2002] in the R (version 3.0.1, R Core Team 2013) statistical program was used to construct and fit all models, and to derive the variable importance estimates of each used predictor variable.
+
+
+how do i incorporate the acc_thr component in this section?????
+
+i used rf to find the variance of identified movement behaviours, then use the seq() code to identify a range of values that are above 'still' behaviours variance, and won't be triggered with n_5 value?
+
+
+used said variance to ground-truth the sampling regime with two dogs on two seperate experimented walks. See graph for result: the chosen variance value works well and not just any arbitrary value is used despite recommendation from user manual.
+
+
+
+```{r data preparation, eval=FALSE, include=FALSE}
+data = read.csv("2020-07-20_mla-train-data.csv")
+data$X = NULL
+data$dog = as.factor("newguys")
+data = data %>%
+  mutate(behaviour = annotation,
+         X = acceleration.x,
+         Y = acceleration.y,
+         Z = acceleration.z) %>%
+  select(dog, sample, burst.timestamp, sample.timestamp, X, Y, Z, behaviour)
+  
+
+train.data = read.csv("acc_randomforest-training-data03.csv")
+train = rbind(train.data, data)
+
+eat = filter(train, behaviour == "eat") 
+eat$index = rep(1:(nrow(eat)/20), each = 20)
+forage = filter(train, behaviour == "forage")
+forage$index = rep(1:(nrow(forage)/20), each = 20)
+lie = filter(train, behaviour == "lie")
+lie$index = rep(1:(nrow(lie)/20), each = 20)
+run = filter(train, behaviour == "run")
+run$index = rep(1:(nrow(run)/20), each = 20)
+sit = filter(train, behaviour == "sit")
+sit$index = rep(1:(nrow(sit)/20), each = 20)
+stand = filter(train, behaviour == "stand")
+stand$index = rep(1:(nrow(stand)/20), each = 20)
+walk = filter(train, behaviour == "walk")
+walk$index = rep(1:(nrow(walk)/20), each = 20)
+
+train.data = rbind(eat, forage, lie, run, sit, stand, walk)
+```
+
+```{r transforming data, eval=FALSE, include=FALSE}
+
+rf.data = train.data %>%
+  group_by(dog, behaviour, index)%>%
+  summarize(behaviour = first(behaviour),
+            mean.x = mean(X, na.rm = TRUE),
+            mean.y = mean(Y, na.rm =TRUE),
+            mean.z = mean(Z, na.rm = TRUE),
+            min.x = min(X, na.rm = TRUE),
+            min.y = min(Y, na.rm =TRUE),
+            min.z = min(Z, na.rm = TRUE),
+            kurt.x = kurtosis(X, na.rm = TRUE),
+            kurt.y = kurtosis(Y, na.rm =TRUE),
+            kurt.z = kurtosis(Z, na.rm = TRUE),
+            skew.x = skewness(X, na.rm = TRUE),
+            skew.y = skewness(Y, na.rm =TRUE),
+            skew.z = skewness(Z, na.rm = TRUE),
+            max.x = max(X, na.rm = TRUE),
+            max.y = max(Y, na.rm =TRUE),
+            max.z = max(Z, na.rm = TRUE),
+            sd.x = sd(X, na.rm = TRUE),
+            sd.y = sd(Y, na.rm =TRUE),
+            sd.z = sd(Z, na.rm = TRUE),
+            range.x = max.x - min.x,
+            range.y = max.y - min.y,
+            range.z = max.z - min.z
+            )
+
+rf.data = select(rf.data, -index)
+# Write the data above
+
+```
+
+```{r rf model preparation }
+rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # data prep described above
+rf.data$behaviour = as.factor(rf.data$behaviour)
+rf.data$dog = NULL
+rf.data$X = NULL
+rf.data = as.data.frame(rf.data)
+
+g <- runif(nrow(rf.data))
+rf.data <- rf.data[order(g),] 
+
+s1 = sample(nrow(rf.data), 0.8 * nrow(rf.data)) # Take 90% subset to train data, 10% to test
+
+rf.data_train <- rf.data[s1,] # randomize the order of the training dataset
+rf.data_test <- rf.data[-s1,] # and the testing dataset
+
+```
+
+```{r rf model preparation 1/2}
+
+model.mtry = c() # Do 'mtry' loop to identify best value for mtry
+i=21
+for (i in 1:21) {
+  model.mtry.train <- randomForest(behaviour ~ ., data = rf.data_train, ntree = 500, mtry = i, importance = TRUE)
+  predTest.mtry <- predict(model.mtry.train, rf.data_test, type = "class")
+  model.mtry[i] = mean(predTest.mtry == rf.data_test$behaviour)
+}
+
+model.mtry.df = data.frame(mTry = c(1:21), Accuracy = c(model.mtry))
+plot(model.mtry.df)
+
+model.mtry.df.plot = ggplot(data = model.mtry.df, 
+                             aes(x = mTry, y = Accuracy )) + geom_point(stat = "identity", 
+                                                                     size = 3,
+                                                                     shape = "square",
+                                                                     color = "red")
+
+model.mtry.df.plot 
+#Prediction accuracy of randomforest model (2 second burst) with varying mtry variables
+# most optimum value is 16
+```
+
+```{r rf model construction}
+
+model = randomForest(behaviour ~., data = rf.data_train, 
+                        method = "class", ntree = 500, mtry = 16)
+predTest = predict(model, rf.data_test, type = "class")
+
+test.result2 = stargazer(model$confusion, type = "text", summary = F)
+test.result2
+#Table for model for raw 2 sec burst training data
+```
+
+```{r refining the rf model}
+model.df = data.frame(Behaviour = c(model$classes),
+                  Error = c(model$confusion[,8]))
+
+model.corr = data.frame(Behaviour = c(model$classes),
+                  eat = c(model$confusion[,1]),
+                  forage = c(model$confusion[,2]),
+                  lie = c(model$confusion[,3]),
+                  run = c(model$confusion[,4]),
+                  sit = c(model$confusion[,5]),
+                  stand = c(model$confusion[,6]),
+                  walk = c(model$confusion[,7]))
+
+model.matrix = as.matrix(model.corr[,-1], nrow = 7, ncol = 7)
+model.prop.t = round(prop.table(model.matrix,1),3)
+model.corr.plot = corrplot(model.prop.t,
+                            type = "full",
+                            order = "hclust",
+                            method = "number",
+                            tl.col = "black",
+                            tl.srt = 45)
+
+model.corr.plot 
+#Correlation plot of the prediction accuracy of behaviours within the training dataset
+
+
+
+model.individual.behaviour.plot = ggplot(data = model.df, 
+                                          aes(x= reorder(Behaviour, +Error), y=Error)) + geom_bar(stat = "identity")
+
+model.individual.behaviour.plot = model.individual.behaviour.plot + coord_flip()
+
+model.individual.behaviour.plot 
+
+importance(model)
+varImpPlot(model)
+#Importance of each variable for behaviour prediction accuracy
+
+plot(model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
+#shows the stability of the randomforest prediction after X no. of trees / importance of ntree
+
+
+mean(predTest == rf.data_test$behaviour)
+table(predTest, rf.data_test$behaviour)
+#Predicting on Test results
+
+```
+
+# Results 
+
+# Discussion
+
+# Conclusion
+
+
+
+
+
+\newpage
+
+# References

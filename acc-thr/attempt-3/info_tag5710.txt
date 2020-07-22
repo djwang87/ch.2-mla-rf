@@ -1,0 +1,193 @@
+Data decoder version v7.2 compiled Apr 29 2015 16:16:37
+Going through data:
+
+Data download:
+Basestation Id: 59944
+4888,21.7.2020,Tu,01:59:56
+Animal tag has 25408 Bytes data for download available.
+
+B5:GPS-ACC-Tag Software vers No.:10
+
+Printing tag settings tt5_10, valid at the point in time of the data download:
+
+-------------- ACC-Settings: ------------------
+ACC INTERVAL: 20 seconds == 0 minutes 20 s
+ACC BYTE COUNT: 126 bytes => 78 ACC SAMPLES (for all axes together)
+ACC-AXES: XYZ
+ACC SAMPLERATE DIVISOR:10
+ACC SAMPLERATE per axis:10.00 Hz
+ACC ON FROM: 00:00 GPSTIME
+ACC ON UNTIL:23:59 GPSTIME
+ACC LOW SPEED INTERVAL FACTOR:1 (if supported by device)
+
+-------------- GPS-Settings: ------------------
+GPS RETRY INTERVAL FACTOR: 1
+GPS LOW SPEED INTERVAL FACTOR: 1
+GPS LOW SPEED THRESHOLD: 50 cm/s
+GPS ON FROM: 00:00 GPSTIME
+GPS ON UNTIL:23:59 GPSTIME
+GPS TIMEOUT: 150 seconds
+
+-------------- Radio- and other Settings: ------------------
+Ping freq:0x221920 = 920.649902 MHz
+rf_pingpower:8
+PING ON FROM: 00:00 GPSTIME
+PING ON UNTIL:23:59 GPSTIME
+bat_threshold2: code:2458 => 3000 MilliVolt
+bat_threshold1: code:2458 => 3000 MilliVolt
+maccess_voltlimit: code:2294 => 2800 MilliVolt
+ACC INVERSE SPEED FACTOR NOT ENABLED (=default)
+access_key:12
+secret_key:13564
+radio_interval:20
+radio_longdelay:900
+burst_length:1
+burst_qperiod:1
+Delayed start:0,4.3.2007,So,00:00:00
+gps_hourshift:0
+gps_daydivisor:1
+###### Tag with variance feature, following settings apply: ######
+ACC-VARIANCE-AXIS: Z
+ACC VAR THRESHOLD: 10000
+ACC VAR N1: 5
+ACC VAR N2: 2
+GPS LOW RESOLUTION INTERVAL: 60
+GPS HIGH RESOLUTION INTERVAL: 30
+
+
+Close info:
+
+(data complete)
+
+Data download:
+Basestation Id: 59944
+4888,21.7.2020,Tu,06:52:35
+Animal tag has 14080 Bytes data for download available.
+
+B5:GPS-ACC-Tag Software vers No.:10
+
+Printing tag settings tt5_10, valid at the point in time of the data download:
+
+-------------- ACC-Settings: ------------------
+ACC INTERVAL: 20 seconds == 0 minutes 20 s
+ACC BYTE COUNT: 126 bytes => 78 ACC SAMPLES (for all axes together)
+ACC-AXES: XYZ
+ACC SAMPLERATE DIVISOR:10
+ACC SAMPLERATE per axis:10.00 Hz
+ACC ON FROM: 00:00 GPSTIME
+ACC ON UNTIL:23:59 GPSTIME
+ACC LOW SPEED INTERVAL FACTOR:1 (if supported by device)
+
+-------------- GPS-Settings: ------------------
+GPS RETRY INTERVAL FACTOR: 1
+GPS LOW SPEED INTERVAL FACTOR: 1
+GPS LOW SPEED THRESHOLD: 50 cm/s
+GPS ON FROM: 00:00 GPSTIME
+GPS ON UNTIL:23:59 GPSTIME
+GPS TIMEOUT: 150 seconds
+
+-------------- Radio- and other Settings: ------------------
+Ping freq:0x221920 = 920.649902 MHz
+rf_pingpower:8
+PING ON FROM: 00:00 GPSTIME
+PING ON UNTIL:23:59 GPSTIME
+bat_threshold2: code:2458 => 3000 MilliVolt
+bat_threshold1: code:2458 => 3000 MilliVolt
+maccess_voltlimit: code:2294 => 2800 MilliVolt
+ACC INVERSE SPEED FACTOR NOT ENABLED (=default)
+access_key:12
+secret_key:13564
+radio_interval:20
+radio_longdelay:900
+burst_length:1
+burst_qperiod:1
+Delayed start:0,4.3.2007,So,00:00:00
+gps_hourshift:0
+gps_daydivisor:1
+###### Tag with variance feature, following settings apply: ######
+ACC-VARIANCE-AXIS: Y
+ACC VAR THRESHOLD: 10000
+ACC VAR N1: 5
+ACC VAR N2: 2
+GPS LOW RESOLUTION INTERVAL: 60
+GPS HIGH RESOLUTION INTERVAL: 30
+
+
+Close info:
+
+totalcount up to here: 39488 Bytes, since last open: 14080 Bytes
+(data complete)
+Now analysing data:
+basestation info:
+Rewrite counter:413
+e-obs GmbH, The Digital Telemetry company, Germany
+
+Format of gps data: comma separated values:
+(1) "GPS" (2) number of days since march 4/2007 (3) date (4) day of week (5) time of day
+(6) longitude (7) latitude (8) height above ellipsoid, m (9) type of fix (10) status (11) flag of gpsclock
+(12) noiselevel (13) expended time to get fix (14) date of fix (15) weekday of fix
+(16) time of day of gps fix (17) battery voltage, mV (18) temperature
+(19) speed over ground, m/s (20) heading, degree (21) speed inaccuracy estimate, m/s
+(22) horizontal inaccuracy estimate, m
+Temperature is in degree Celsius with low accuracy.
+
+
+Reset-Event. Status:
+4888,21.7.2020,Tu,00:48:58 RS:0x01 VMON:0xC0
+Hardware trigger (e.g. with magnet)
+Battery Voltage: 3310 mV, at last gpsfix: 0 mV
+SWITCH is ON
+
+
+ON-OFF-SWITCH-Event. Status:
+4888,21.7.2020,Tu,00:48:58 RS:0x01 VMON:0xC0
+Battery Voltage: 3310 mV, at last gpsfix: 0 mV
+SWITCH is OFF
+
+
+Reset-Event. Status:
+4888,21.7.2020,Tu,01:01:40 RS:0x01 VMON:0xC0
+Hardware trigger (e.g. with magnet)
+Battery Voltage: 3347 mV, at last gpsfix: 0 mV
+SWITCH is OFF
+
+
+ON-OFF-SWITCH-Event. Status:
+4888,21.7.2020,Tu,01:01:40 RS:0x01 VMON:0xC0
+Battery Voltage: 3347 mV, at last gpsfix: 0 mV
+SWITCH is ON
+
+
+Reset-Event. Status:
+4888,21.7.2020,Tu,02:00:28 RS:0x01 VMON:0xC0
+Hardware trigger (e.g. with magnet)
+Battery Voltage: 3376 mV, at last gpsfix: 0 mV
+SWITCH is ON
+
+
+ON-OFF-SWITCH-Event. Status:
+4888,21.7.2020,Tu,02:00:28 RS:0x01 VMON:0xC0
+Battery Voltage: 3376 mV, at last gpsfix: 0 mV
+SWITCH is OFF
+
+
+Reset-Event. Status:
+4888,21.7.2020,Tu,06:12:18 RS:0x01 VMON:0xC0
+Hardware trigger (e.g. with magnet)
+Battery Voltage: 3417 mV, at last gpsfix: 0 mV
+SWITCH is OFF
+
+
+Reset-Event. Status:
+4888,21.7.2020,Tu,06:14:18 RS:0x01 VMON:0xC0
+Hardware trigger (e.g. with magnet)
+Battery Voltage: 3392 mV, at last gpsfix: 0 mV
+SWITCH is OFF
+
+
+ON-OFF-SWITCH-Event. Status:
+4888,21.7.2020,Tu,06:15:29 RS:0x01 VMON:0xC0
+Battery Voltage: 3392 mV, at last gpsfix: 0 mV
+SWITCH is ON
+
+The last download for tag5710 was a COMPLETE data download.

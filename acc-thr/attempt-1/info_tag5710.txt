@@ -1,0 +1,66 @@
+Data decoder version v7.2 compiled Apr 29 2015 16:16:37
+Going through data:
+
+Data download:
+Basestation Id: 59944
+4888,21.7.2020,Tu,00:48:33
+Animal tag has 14336 Bytes data for download available.
+
+B5:GPS-ACC-Tag Software vers No.:10
+
+Printing tag settings tt5_10, valid at the point in time of the data download:
+
+-------------- ACC-Settings: ------------------
+ACC INTERVAL: 20 seconds == 0 minutes 20 s
+ACC BYTE COUNT: 126 bytes => 78 ACC SAMPLES (for all axes together)
+ACC-AXES: XYZ
+ACC SAMPLERATE DIVISOR:10
+ACC SAMPLERATE per axis:10.00 Hz
+ACC ON FROM: 00:00 GPSTIME
+ACC ON UNTIL:23:59 GPSTIME
+ACC LOW SPEED INTERVAL FACTOR:1 (if supported by device)
+
+-------------- GPS-Settings: ------------------
+GPS RETRY INTERVAL FACTOR: 1
+GPS LOW SPEED INTERVAL FACTOR: 1
+GPS LOW SPEED THRESHOLD: 50 cm/s
+GPS ON FROM: 00:00 GPSTIME
+GPS ON UNTIL:23:59 GPSTIME
+GPS TIMEOUT: 150 seconds
+
+-------------- Radio- and other Settings: ------------------
+Ping freq:0x221920 = 920.649902 MHz
+rf_pingpower:8
+PING ON FROM: 00:00 GPSTIME
+PING ON UNTIL:23:59 GPSTIME
+bat_threshold2: code:2458 => 3000 MilliVolt
+bat_threshold1: code:2458 => 3000 MilliVolt
+maccess_voltlimit: code:2294 => 2800 MilliVolt
+ACC INVERSE SPEED FACTOR NOT ENABLED (=default)
+access_key:12
+secret_key:13564
+radio_interval:20
+radio_longdelay:900
+burst_length:1
+burst_qperiod:1
+Delayed start:0,4.3.2007,So,00:00:00
+gps_hourshift:0
+gps_daydivisor:1
+###### Tag with variance feature, following settings apply: ######
+ACC-VARIANCE-AXIS: Z
+ACC VAR THRESHOLD: 10000
+ACC VAR N1: 5
+ACC VAR N2: 2
+GPS LOW RESOLUTION INTERVAL: 60
+GPS HIGH RESOLUTION INTERVAL: 30
+
+
+Close info:
+
+totalcount up to here: 14336 Bytes, since last open: 14336 Bytes
+(data complete)
+Now analysing data:
+basestation info:
+Rewrite counter:410
+e-obs GmbH, The Digital Telemetry company, Germany
+The last download for tag5710 was a COMPLETE data download.
