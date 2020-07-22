@@ -1,2 +1,3 @@
-# ch.2-mla-rf
-ch2 of thesis; describes rf mode construction
+# ch2_randomforest-acc-thr
+
+ch2 of thesis; describes rf model construction and acc_thr programming
