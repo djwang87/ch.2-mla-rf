@@ -31,9 +31,7 @@ acc.n.var = acc.n %>%
 
 acc.n.var = cbind(acc.n.var, acc.n.var.col.names)
 
-acc.n.var$threshold.z = ifelse(acc.n.var$var.z > 1000, "high", "low")
-acc.n.var$threshold.y = ifelse(acc.n.var$var.y > 1000, "high", "low")
-acc.n.var$threshold.x = ifelse(acc.n.var$var.x > 1000, "high", "low")
+
 
 gps = gps %>%
   select(sg.time, location_long, location_lat) %>%
@@ -47,7 +45,7 @@ for (i in 1:nrow(gps)) {
 gps$time.diff[29] = 60
 acc.n.var$burst = NULL
 
-match = read.csv('../2020-07-21_acc-thr_gps-cleaned.csv') # hand-cleaned gps data
+match = read.csv('2020-07-21_acc-thr_gps-cleaned.csv') # hand-cleaned gps data
 match$burst = match$X
 
 ggplot(match, aes(x = burst)) +
