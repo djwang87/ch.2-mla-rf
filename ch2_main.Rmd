@@ -9,7 +9,7 @@ editor_options:
 ```{r global options, cache=FALSE, include=FALSE}
 set.seed(2807)
 knitr::opts_chunk$set(fig.pos = 'H') #to set all images to top
-knitr::read_chunk('ch2-main.Rmd')
+knitr::read_chunk('ch2_main.Rmd')
 options(tinytex.verbose = TRUE)
 ```
 
@@ -33,25 +33,18 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 
 # Material and methods
 
-We used wildlife tracking collars (e-obs gmbh) equipped with tri-axial accelerometers sampling continuously at 10Hz to monitor behaviour in domestic and free-roaming dogs. The wildlife tracking collar (hence tri-axial accelerometer) was mounted such that the x-, y-, and z- axes were parallel to the transverse, the anterior-posterior, and the dorsal-ventral planes of the animal, respectively. Nine adult dogs (of German Shepard and Golden Retriever breeds) were selected and collared; all nine dogs were well-trained individuals that could reliably perform the selected repertoire of movement behaviours (see Table 1 for more information) while being off-leash and under the instructions of their trainer. All collared domestic dogs were instructed to perform a specific repertoire of behaviours to perform (see Table 1 for more information) and their performance was recorded with a video camera. Three trials per dog was conducted for this component and a total of 270 minutes of recorded behavioural observations for the collared domestic dogs were obtained.
+We used wildlife tracking collars (e-obs gmbh) equipped with tri-axial accelerometers sampling continuously at 10Hz to monitor behaviour in domestic and free-roaming dogs. The wildlife tracking collar (hence tri-axial accelerometer) was mounted such that the x-, y-, and z- axes were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. Eleven adult dogs (of German Shepard and Golden Retriever breeds) were selected and collared to obtain the training dataset required for the construction of the random forest model. All eleven dogs were well-trained individuals that could perform the selected repertoire of movement behaviours (see Table 1 for more information) through the verbal instructions of their trainer while being off-leash. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained.
 
-All video footages of the domestic dogs were reviewed and the performed behaviours were categorized into impactful (e.g., walking, running, eating, foraging) or non-impactful (e.g., sitting, standing, resting) activities. Video footages were binned into 2-second "bursts" encompassing of only one dog behaviour (Table 1) and the corresponding accelerometer data was extracted for analysis. All performed (and observed) dog behaviours were limited into the above seven categories (Table 1), and behavioural transitions were not catalogued since they occurred very quickly (≤1s). Footages and accelerometer data were binned into two-second windows as this duration accommodated at least two full strides for motion-based dog behaviour (i.e., walking, foraging).
+The acceleration measurements collected from the collared dogs were binned into two-second windows (or 'bursts') and were labelled accordingly with the associated dog behaviour. Labelling was done by matching with the video footage time-stamps of the performed dog behaviour to the time-stamps of the collected acceleration measurements. All performed (and observed) dog behaviours were limited into the seven categories as described in Table 1, and behavioural transitions were not catalogued since they occurred very quickly (≤1s). Labelled acceleration measurements were binned into two-second bursts as this duration was found to accomodate at least two full strides for motion-based dog behaviours (i.e., walking, foraging) without much influence from un-intentional behavioural transitions.
 
 Random Forests (RF) [@Lush2016b;@Graf2015d] was selected as the modeling tool for predicting unobserved behaviours in wild animals based on measurements of observed behaviours in captive animals. Random Forests is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that are not easily fitted by traditional methods such as generalized linear models [@Cutler2007]. Random Forests are capable of making accurate predictions from datasets with highly correlated predictor variables and identify the importance measures of each conditional variable. This capability identifies the extent of which a specific predictor variable influences the algorithm's classification accuracy [@Cutler2007]; a higher measure of importance in a predictor variable demonstrates the greater influence it has in comparison to the other predictor variables used in the model [@Cutler2007].
 
-To build the RF model to predict the seven classes of dog behaviour (Table 1), a series of summary statistics (mean, min, max, kurtosis, skewness, range, correlation, standard deviation) for all three axes were applied onto each burst of accelerometer data to obtain the predictor variables. Subsequently, 500 classification trees were fitted onto a selected subsample (n = 29260, without replacement) of domestic dog accelerometer data using a random subset of the 21 predictor variables for each split in the tree. Predictions made by all trees for each observation were then tallied and prediction accuracies were calculated by comparing the predicted and actual classifications. The 'randomForest' package [@Liaw2002] in the R (version 3.0.1, R Core Team 2013) statistical program was used to construct and fit all models, and to derive the variable importance estimates of each used predictor variable.
+To construct the RF model to predict the seven classes of dog behaviour (Table 1), a series of summary statistics (mean, min, max, kurtosis, skewness, range, standard deviation) for all three axes were applied onto each labelled burst of accelerometer measurements to describe the predictor variables of the random forest model. Subsequently, a range of mtry (i.e., number of predictor variables available for splitting at each tree node; different mTry parameter values can affect model sensitivity and stability) and ntree (i.e., number of decision 'trees'; larger number of trees produce more stable models) parameters were examined to identify the values that have the strongest influence on the predictive capacity of the model. Predictions made by all trees for each observation were then tallied and prediction accuracies were calculated by comparing the predicted and actual classifications. The 'randomForest' package [@Liaw2002] in the R (version 3.0.1, R Core Team 2013) statistical program was used to construct and fit all models, and to derive the variable importance estimates of each used predictor variable.
+
+i used rf to find the variance of identified movement behaviours (which becomes a table) and picked an arbitrary value from an axis that best represents motion in a dog. After which, I ground-truth the acc-thr value by incorporating the desired value into a tracking collar and brought four different dogs for a walk. All dogs were walked continuously for approximately ten minutes, and with the studied dog resting (with the collar on) only in the beginning and end of each walk. The dogs were rested in a non-motion movement behaviour (e.g., lying, sitting or standing) to simulate the resting behaviour of free-roaming dogs in the wild. The GPS and ACC dataset were then retrieved from the collar, and the occurence of short- and long-burst gps relocations were plotted sequentially against the variance of the accelerometer measurements collected from all three axes. 
 
 
-how do i incorporate the acc_thr component in this section?????
-
-i used rf to find the variance of identified movement behaviours, then use the seq() code to identify a range of values that are above 'still' behaviours variance, and won't be triggered with n_5 value?
-
-
-used said variance to ground-truth the sampling regime with two dogs on two seperate experimented walks. See graph for result: the chosen variance value works well and not just any arbitrary value is used despite recommendation from user manual.
-
-
-
-```{r data preparation, eval=FALSE, include=FALSE}
+```{r rf data preparation, eval=FALSE, include=FALSE}
 data = read.csv("2020-07-20_mla-train-data.csv")
 data$X = NULL
 data$dog = as.factor("newguys")
@@ -118,7 +111,7 @@ rf.data = select(rf.data, -index)
 ```
 
 ```{r rf model preparation }
-rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # data prep described above
+rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # data file prep'n described above
 rf.data$behaviour = as.factor(rf.data$behaviour)
 rf.data$dog = NULL
 rf.data$X = NULL
@@ -127,7 +120,7 @@ rf.data = as.data.frame(rf.data)
 g <- runif(nrow(rf.data))
 rf.data <- rf.data[order(g),] 
 
-s1 = sample(nrow(rf.data), 0.8 * nrow(rf.data)) # Take 90% subset to train data, 10% to test
+s1 = sample(nrow(rf.data), 0.9 * nrow(rf.data)) # Take 90% subset to train data, 10% to test
 
 rf.data_train <- rf.data[s1,] # randomize the order of the training dataset
 rf.data_test <- rf.data[-s1,] # and the testing dataset
@@ -215,6 +208,136 @@ mean(predTest == rf.data_test$behaviour)
 table(predTest, rf.data_test$behaviour)
 #Predicting on Test results
 
+```
+
+```{r reading acc-thr data}
+df = read.csv("2020-07-20_mla-train-data.csv")
+df$X = NULL
+df$dog = as.factor("newguys")
+data = df %>%
+  mutate(behaviour = annotation,
+         X = acceleration.x,
+         Y = acceleration.y,
+         Z = acceleration.z) %>%
+  select(dog, sample, burst.timestamp, sample.timestamp, X, Y, Z, behaviour)
+df2 = read.csv("acc_randomforest-training-data03.csv")
+df = rbind(data, df2)
+df = tbl_df(df)
+df$behaviour = as.factor(df$behaviour)
+
+walk = subset(df, df$behaviour == "walk")
+run = subset(df, df$behaviour == "run")
+lie = subset(df, df$behaviour == "lie")
+sit = subset(df, df$behaviour == "sit")
+stand = subset(df, df$behaviour == "stand")
+forage = subset(df, df$behaviour == "forage")
+eat = subset(df, df$behaviour == "eat")
+
+move = rbind(walk, run, forage)
+still = rbind (lie, sit, stand)
+
+```
+
+```{r choosing variance values for behaviours}
+walk = walk[1:(round(nrow(walk)/26)*26),]
+walk$index = rep(1:(nrow(walk)/26), each = 26)
+
+walk.var = walk %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "walk")
+
+run = run[1:(round(nrow(run)/26)*26),]
+run$index = rep(1:(nrow(run)/26), each = 26)
+
+run.var = run %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "run")
+
+forage = forage[1:(round(nrow(forage)/26)*26),]
+forage$index = rep(1:(nrow(forage)/26), each = 26)
+
+forage.var = forage %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "forage")
+
+lie = lie[1:(round(nrow(lie)/26)*26),]
+lie$index = rep(1:(nrow(lie)/26), each = 26)
+
+lie.var = lie %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "lie")
+
+
+sit = sit[1:(round(nrow(sit)/26)*26),]
+sit$index = rep(1:(nrow(sit)/26), each = 26)
+
+sit.var = sit %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "sit")
+
+
+stand = stand[1:(round(nrow(stand)/26)*26),]
+stand$index = rep(1:(nrow(stand)/26), each = 26)
+
+stand.var = stand %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "stand")
+```
+
+```{r visualizing chosen variance values}
+move = rbind(walk.var, run.var, forage.var)
+move = na.omit(move)
+move$behavior = as.factor(move$behaviour)
+
+
+still = rbind(lie.var, sit.var, stand.var)
+still = na.omit(still)
+still$behaviour = as.factor(still$behaviour)
+
+df.all = rbind(run.var, forage.var, walk.var, stand.var, sit.var, lie.var)
+df.all = na.omit(df.all)
+df.all$behaviour = as.factor(df.all$behaviour)
+
+all.variance.table = df.all %>% # The greatest difference between variance values are in axis Z
+  group_by(behaviour) %>%
+  summarise(mean.X = mean(var.x),
+            mean.Y = mean(var.y),
+            mean.Z = mean(var.z)) %>%
+  arrange(mean.Z)
+
+```
+
+
+```{r ground truthing the acc-thr value}
+match = read.csv('2020-07-21_acc-thr_gps-cleaned.csv') # manual-cleaned gps data
+match$burst = match$X
+
+ggplot(match, aes(x = burst)) +
+  geom_line(aes(y = var.x), color = 'red') + 
+  geom_line(aes(y = var.y), color = 'green') + 
+  geom_line(aes(y = var.z), color = 'blue') + 
+  geom_point(aes(y = time.diff3*50000), color = 'black')
+
+# Set acc-thr as decided in above section in the gps collar, and 
+#took 4 different dogs for a walk with a planned route.
 ```
 
 # Results 

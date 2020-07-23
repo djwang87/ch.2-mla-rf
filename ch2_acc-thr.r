@@ -31,6 +31,11 @@ acc.n.var = acc.n %>%
 
 acc.n.var = cbind(acc.n.var, acc.n.var.col.names)
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 22-07-2020
 gps = gps %>%
   select(sg.time, location_long, location_lat) %>%
   rename(longitude = location_long,
