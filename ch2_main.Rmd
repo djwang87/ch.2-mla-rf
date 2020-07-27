@@ -1,12 +1,30 @@
 ---
 title: "chapter 2 - RF model"
 author: "Dajun Wang"
-date: "7/20/2020"
+date: "11/9/2019"
 output:
-  pdf_document: default
-  html_document: default
+  pdf_document:
+    toc: no
+    number_sections: yes
+    fig_caption: yes
+    df_print: kable
+    highlight: tango
+  html_document:
+    toc: no
+    df_print: paged
+  word_document:
+    toc: no
+fontsize: 11pt
+geometry: margin = 1.2in
+bibliography: ../../PhD/zot-library.bib
 editor_options:
   chunk_output_type: console
+spacing: double
+mainfont: Times New Roman
+header-includes:
+- \setlength\parindent{24pt}
+- \usepackage{indentfirst}
+- \usepackage{setspace}\doublespacing
 ---
 ```{r global options, cache=FALSE, include=FALSE}
 set.seed(2807)
@@ -16,7 +34,7 @@ options(tinytex.verbose = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-list.of.packages <- c("lubridate", "dplyr", "ggplot2","randomForest", "corrplot", "knitr", "glmm", "tinytex","xtable","ggcorrplot","stargazer","kableExtra", "captioner","formattable", "reshape2", "lme4") 
+list.of.packages <- c("lubridate", "dplyr", "ggplot2","randomForest", "corrplot", "knitr", "glmm", "tinytex","xtable","ggcorrplot","stargazer","kableExtra", "captioner","formattable", "reshape2", "lme4", "e1071") 
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(unlist(new.packages))
@@ -30,7 +48,18 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 ```
 
 ```{r captioner, include = FALSE}
+table_nums = captioner(prefix = 'Table')
+table_nums(name = "summstats", caption = "Predictor variables and their statistic labels used for predicting dog behavioural tasks in the random forest models.")
+table_nums(name = 'dogtask', caption = "Description of the behavioural tasks performed by kennel club-trained domestic dogs.")
+table_nums(name = "predaccuracy", caption = "The prediction accuracy of the RF model.")
+table_nums(name = "accthrtable", caption = "The mean variance of acceleromenter measurements for predicted movement behaviours in dogs.")
 
+fig_nums <- captioner()
+fig_nums(name = 'oob', caption = "The Out-Of-Bag error estimates for the predictive RF model plotted gainst the number of trees (*n*) used.")
+fig_nums(name = 'mtry', caption = "The Out-Of-Bag error estimates for the predictive RF model plotted gainst the number of trees (*n*) used.")
+fig_nums(name = "predaccuracy", caption = "The prediction accuracy of the RF model.")
+fig_nums(name = "varimp", caption = 'The importance of each predictor variable in the RF model.')
+fig_nums(name = "accthrplot", caption = "The sampling of GPS re-locations based with an accelerometer threshold of 10,000 in the Z axis. The red, blue and green lines represents the X, Y and Z axis.")
 ```
 
 # Introduction
@@ -38,28 +67,58 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 
 # Material and methods
 
-We used wildlife tracking collars (e-obs gmbh) equipped with tri-axial accelerometers sampling continuously at 10Hz to monitor behaviour in domestic and free-roaming dogs. The wildlife tracking collar (hence tri-axial accelerometer) was mounted such that the x-, y-, and z- axes were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. Eleven adult dogs (of German Shepard and Golden Retriever breeds) were selected and collared to obtain the training dataset required for the construction of the random forest model. All eleven dogs were well-trained individuals that could perform the selected repertoire of movement behaviours (see Table 1 for more information) through the verbal instructions of their trainer while being off-leash. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained.
+## Random forest model construction
 
-The acceleration measurements collected from the collared dogs were binned into two-second windows (or 'bursts') and were labelled accordingly with the associated dog behaviour. Labelling was done by matching with the video footage time-stamps of the performed dog behaviour to the time-stamps of the collected acceleration measurements. All performed (and observed) dog behaviours were limited into the seven categories as described in Table 1, and behavioural transitions were not catalogued since they occurred very quickly (i.e., less than 1s). Labelled acceleration measurements were binned into two-second bursts as this duration was found to accomodate at least two full strides for motion-based dog behaviours (i.e., walking, foraging) without much influence from un-intentional behavioural transitions.
+Random Forests (RF) is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that  cannot be easily fitted with traditional methods such as generalized linear models [@Cutler2007]. Through the use of tri-axial accelerometery measurements (i.e., acceleration values), RF models can also be used to predict unobservable behaviours in wild, free-rangubg animals based on information collected from examining captive animals. To do this, the RF model must first be trained to recognize and predict labelled behaviours in a 'training' dataset with decision trees constructed with suitable predicor variables (`r table_nums('summstats', display = 'cite')`) used for classifying and predicting behaviours (`r table_nums('dogtask', display = "cite")`).
 
-Random Forests (RF) [@Lush2016b;@Graf2015d] was selected as the modeling tool for predicting unobserved behaviours in wild animals based on measurements of observed behaviours in captive animals. Random Forests is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that are not easily fitted by traditional methods such as generalized linear models [@Cutler2007]. Random Forests are capable of making accurate predictions from datasets with highly correlated predictor variables and identify the importance measures of each conditional variable. This capability identifies the extent of which a specific predictor variable influences the algorithm's classification accuracy [@Cutler2007]; a higher measure of importance in a predictor variable demonstrates the greater influence it has in comparison to the other predictor variables used in the model [@Cutler2007].
+For the classification and labelling of known behaviours in accelerometery data, I collared 11 healthy adult dogs of three different dog breeds: German shepherds (n = 9, six males and three females, age range: 1–8 years, mean age: 5 years old, Rottweiler (n = 1, male, age: 8 years old) and Golden Retriever (n = 1, male, age: 1 year old) with an accelerometer-equipped wildlife tracking collar (Type 1C-heavy, E-obs GmbH; Grünwald, Germany). The wildlife tracking collar used in this chapter is also used for collaring and tracking free-roaming dogs in the subsequent chapters. All eleven dogs were well-trained individuals that could perform the selected repertoire of movement behaviours (`r table_nums('dogtask', display = "cite")`) solely with verbal instructions from their trainer while being off-leash. 
 
-To construct the RF model to predict the seven classes of dog behaviour (Table 2), a series of summary statistics (mean, min, max, kurtosis, skewness, range, standard deviation) for all three axes were applied onto each labelled burst of accelerometer measurements to describe the predictor variables of the random forest model. Subsequently, a range of mtry (i.e., number of predictor variables available for splitting at each tree node; different mTry parameter values can affect model sensitivity and stability) and ntree (i.e., number of decision 'trees'; larger number of trees produce more stable models) parameters were examined to identify the values that have the strongest influence on the predictive capacity of the model. Predictions made by all trees for each observation were then tallied and prediction accuracies were calculated by comparing the predicted and actual classifications. The 'randomForest' package [@Liaw2002] in the R (version 3.0.1, R Core Team 2013) statistical program was used to construct and fit all models, and to derive the variable importance estimates of each used predictor variable.
+`r table_nums('dogtask')`
+```{r table dogtasks, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl.dogtasks <- "
+| Behaviour | Description |
+|-|-|
+| Stand | Individual under study is standing on all four limbs with no visible locomotion. Resting posture of the dog's head will vary between individuals. |
+| Lie | Individuals under study is lying prone on the ground with all limps extended out. For some individuals, the dog may be lying fully on its side. In all recordings, there was no visible locomotion. |
+| Sit | Individual under study is sitting on its haunches with no visible locomotion. Similar to Stand, head posture may vary per individual but body posture remains relatively similar. |
+| Eat | Individual under studying is eating or drinking from a bowl whilst standing. No visible locomotion but the posture of the head is angled approximately 45° downwards. |
+| Walk | Individual under study is walking freely without leash at the same speed of the handler. |
+| Forage | Similar to Walk but the position of the dog's head is angled downwards as it sniffs for hidden treats on the ground. |
+| Run | Individual under study is sprinting after a tossed ball. Task is considered completed once the tossed ball has been received by the dog. |
+"
+cat(tabl.dogtasks) # output good for HTML/PDF/docx conversion, use markdown table generator
+```
 
-|  Statistics Label  |   Predictor Variables   |                                                Descriptions                                                |
-|:------------------:|:-----------------------:|:----------------------------------------------------------------------------------------------------------:|
-|        Mean        |   mean.x mean.y mean.z  | The calculated mean of the acceleration  measurements within each burst for axes x, y and z.               |
-|         Min        |    min.x min.y min.z    | The smallest acceleration measurement within  each burst for axes x, y and z.                              |
-|         Max        |    max.x max.y max.z    | The largest acceleration measurement within  each burst for axes x, y and z.                               |
-|      Kurtosis      |   kurt.x kurt.y kurt.z  | The relative flatness of the acceleration  measurements within each burst for axes x, y and z.             |
-|        Skew        |   skew.x skew.y skew.z  | The relative skewness of the acceleration  measurements within each burst for axes x, y and z.             |
-|        Range       | range.x range.y range.z | The calculated difference between the largest and  smallest acceleration measurements of axes x, y, and z. |
-| Standard Deviation |      sd.x sd.y sd.z     | The calculated standard deviations of the  acceleration measurements of axes x, y, and z.                  |
+For the purpose of collecting data to train the RF models (i.e., training dataset), the wildlife tracking collar was programmed to sample continuously at 10 hz, and the collar was mounted such that the x-, y-, and z- axes of the tri-axial acclerometer were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. The design and alignment of the collar provided the tri-axial acceleromenter the capacity to measure the surge (back and forth movement on the x-axis), sway (left and right motion on the y-axis) and heave (up and down on the z-axis) motion of the animal. Data was collected in October 2016 and May 2019 in a grassy field to a) simulate the environment where the intended free-roaming dogs for study are typically found, and b) provide sufficient ground for the dogs to move continuously. The terrain selected for this component was relatively flat to avoid compromising the gravitional forces acting on the heave axis.
 
+ All behavioural tasks (`r table_nums('dogtask', display = "cite")`) were performed continuously for at least 2 min in a stipulated sequence, except for Forage, Eat and Run as these tasks are either too energetically taxing or behaviourally inconsistent. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained. The collected accelerometery data was viewed with an acceleration viewer ([http://www.movebank.org](https://www.movebank.org), version 33) and the time-stamps of the collected accelerometer measurements were synchronized and labelled manually to the time-stamps of the video recordings of each performed behavioural task. This complete labelled dataset was subsequently used in the preparation and construction of the predictive RF model. 
 
-i used rf to find the variance of identified movement behaviours (which becomes a table) and picked an arbitrary value from an axis that best represents motion in a dog. After which, I ground-truth the acc-thr value by incorporating the desired value into a tracking collar and brought four different dogs for a walk. All dogs were walked continuously for approximately ten minutes, and with the studied dog resting (with the collar on) only in the beginning and end of each walk. The dogs were rested in a non-motion movement behaviour (e.g., lying, sitting or standing) to simulate the resting behaviour of free-roaming dogs in the wild. The GPS and ACC dataset were then retrieved from the collar, and the occurence of short- and long-burst gps relocations were plotted sequentially against the variance of the accelerometer measurements collected from all three axes. 
+In preparation of the training dataset, the labelled acceleration measurements were binned into two-second windows (or 'bursts') to accomodate at least two full strides for motion-based dog behaviours (i.e., walking, foraging) without influence from un-intentional behavioural transitions. Subsequently, series of summary statistics (mean, min, max, kurtosis, skewness, range, standard deviation; `r table_nums('summstats', display = 'cite')`) for all three axes were applied onto each labelled burst of accelerometer measurements to characterize the accelerometery measurements of the different behavioural tasks and describe the predictor variables used in the RF model. 
 
-test test
+`r table_nums('summstats')`
+```{r table summstats, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl.summstats <- "
+| Statistics label | Predictor variables |  Description  |
+|:-:|:-:|:-:|
+| Mean | mean.x  mean.y  mean.z | The calculated mean of the acceleration measurements within each burst for axes x, y and z. |
+| Min | min.x min.y min.z | The smallest acceleration measurement within each burst for axes x, y and z. |
+| Max | max.x max.y max.z | The largest acceleration measurement within each burst for axes x, y and z. |
+| Kurtosis | kurt.x kurt.y kurt.z | The relative flatness of the acceleration measurements within each burst for axes x, y and z. |
+| Skew | skew.x skew.y skew.z | The relative skewness of the acceleration measurements within each burst for axes x, y and z. |
+| Range | range.x range.y range.z | The calculated difference between the largest and smallest acceleration measurements of axes x, y, and z. |
+| Standard deviation | sd.x sd.y sd.z | The calculated standard deviations of the acceleration measurements of axes x, y, and z. |
+"
+cat(tabl.summstats) # output good for HTML/PDF/docx conversion, use markdown table generator
+```
+
+The `randomForest` package [@liawClassificationRegressionRandomForest2002] in `R` was then used to prepare and construct the RF model used for predicting dog behaviours. The labelled dataset was subsampled at a 80% proportion as a training dataset to prepare the RF model, while the remaining 20% was used as a testing and validation dataset. The default number of trees (*n* = 500) were used in the RF model construction as the Out-of-Bag (OOB) error estimates, a method of measuring prediction error rates, was found to be consistently stable (`r fig_nums('oob', display = 'cite')`). To refine and improve the RF model's predictive capacity, I cross validated the RF models by comparing the prediction accuracies of RF models constructed (*n* = 21; `r fig_nums("predaccuracy", display = 'cite')`) with a range of mTry values mirroring the number of described predictor variables (`r table_nums('summstats', display = 'cite')`). Following which, the best predictive RF model was constructed and the classification error rate and mean prediction accuracy of each behavioural task in the model were tallied and tabled (`r fig_nums("predaccuracy", display = 'cite')`).
+
+## Accelerometer threshold accelerometer-informed GPS sampling
+
+The wildlife tracking collar is equipped with the capacity to sample GPS relocations dynamically based on the accelerometer measurements collected in real-time. With the use of a selected accelerometer threshold (ACT), reseachers are able to selectively intensify the sampling of GPS re-locations only when the animal is moving (hence higher variance in accelerometer readings). This feature not only reduces the energy and memory consumption during the research period, it also allows the researcher to identify movement paths or patterns that are ecologically interesting (e.g., predation or harrassement events).
+
+For this function to work realistically, I used the above constructed RF model to identify the variances of the predicted movement behaviours and selected a variance value (`r table_nums('accthrtable', display = 'cite')`) for the axis that best represents movement or motion in a dog (i.e., Z axis; the acceleration in the heave axis typified by the rolling gait in dogs). Following which, I ground truth the selected variance by walking four dogs (Mongrel breeds, 4 females, age range 2-7 years old) with the wildlife tracking collar equipped. All dogs were walked continuously for approximately ten minutes, and with the studied dog resting (with the collar on) only in the beginning and end of each walk. The dogs were rested in a non-motion movement behaviour (e.g., lying, sitting or standing) to simulate the resting behaviour of free-roaming dogs in the wild. The GPS and ACC dataset were then retrieved from the collar, and the occurence of quick- and long-burst gps relocations were plotted sequentially against the variance of the accelerometer measurements collected from all three axes (`r fig_nums("accthrplot", display = "cite")`). 
+
 
 ```{r rf data preparation, eval=FALSE, include=FALSE}
 data = read.csv("2020-07-20_mla-train-data.csv")
@@ -127,31 +186,243 @@ rf.data = select(rf.data, -index)
 
 ```
 
+```{r psd dataset prep, eval=FALSE, include=FALSE}
 
-```{r s.s table, eval = FALSE, results = 'asis'}
+psd.x = rep(0,(length(eat$X)/2))
+psd.y = rep(0,(length(eat$Y)/2))
+psd.z = rep(0,(length(eat$Z)/2))
 
+for (i in 1:(length(eat$X)/20)) {
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(eat$X[a:b])
+  test2 = psdcore(eat$Y[a:b])
+  test3 = psdcore(eat$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.eat = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.eat$behaviour = "eat"
+
+psd.x = rep(0,(length(forage$X)/2))
+psd.y = rep(0,(length(forage$Y)/2))
+psd.z = rep(0,(length(forage$Z)/2))
+
+for (i in 1:(length(forage$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(forage$X[a:b])
+  test2 = psdcore(forage$Y[a:b])
+  test3 = psdcore(forage$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.forage = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.forage$behaviour = "forage"
+
+
+psd.x = rep(0,(length(lie$X)/2))
+psd.y = rep(0,(length(lie$Y)/2))
+psd.z = rep(0,(length(lie$Z)/2))
+
+for (i in 1:(length(lie$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(lie$X[a:b])
+  test2 = psdcore(lie$Y[a:b])
+  test3 = psdcore(lie$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.lie = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.lie$behaviour = "lie"
+
+
+psd.x = rep(0,(length(run$X)/2))
+psd.y = rep(0,(length(run$Y)/2))
+psd.z = rep(0,(length(run$Z)/2))
+
+for (i in 1:(length(run$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(run$X[a:b])
+  test2 = psdcore(run$Y[a:b])
+  test3 = psdcore(run$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.run = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.run$behaviour = "run"
+
+
+psd.x = rep(0,(length(sit$X)/2))
+psd.y = rep(0,(length(sit$Y)/2))
+psd.z = rep(0,(length(sit$Z)/2))
+
+for (i in 1:(length(sit$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(sit$X[a:b])
+  test2 = psdcore(sit$Y[a:b])
+  test3 = psdcore(sit$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.sit = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.sit$behaviour = "sit"
+
+
+psd.x = rep(0,(length(stand$X)/2))
+psd.y = rep(0,(length(stand$Y)/2))
+psd.z = rep(0,(length(stand$Z)/2))
+
+for (i in 1:(length(stand$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(stand$X[a:b])
+  test2 = psdcore(stand$Y[a:b])
+  test3 = psdcore(stand$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.stand = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.stand$behaviour = "stand"
+
+
+psd.x = rep(0,(length(walk$X)/2))
+psd.y = rep(0,(length(walk$Y)/2))
+psd.z = rep(0,(length(walk$Z)/2))
+
+for (i in 1:(length(walk$X)/20)) {
+
+  a = i*20-19
+  b = i*20
+  c = i*10-9
+  d = i*10
+  test1 = psdcore(walk$X[a:b])
+  test2 = psdcore(walk$Y[a:b])
+  test3 = psdcore(walk$Z[a:b])
+  psd.x[c:d] = test1$spec
+  psd.y[c:d] = test2$spec
+  psd.z[c:d] = test3$spec
+}
+
+psd.walk = as.data.frame(cbind(psd.x, psd.y, psd.z))
+psd.walk$behaviour = "walk"
+
+psd.two.sec = rbind(psd.eat, psd.forage, psd.lie, psd.run, psd.sit, 
+                    psd.stand, psd.walk)
+psd.two.sec$behaviour = as.factor(psd.two.sec$behaviour)
+psd.two.sec$burst = rep(1:(nrow(psd.two.sec)/10), each = 10)
+psd.two.sec$index = rep(1:10, length = (nrow(psd.two.sec)/10))
+psd.two.sec = psd.two.sec %>%
+  rename(X = psd.x,
+         Y = psd.y,
+         Z = psd.z)
+
+psd.data = psd.two.sec %>%
+  group_by(behaviour, burst) %>%
+  summarize(behaviour = first(behaviour),
+            mean.x = mean(X, na.rm = TRUE),
+            mean.y = mean(Y, na.rm =TRUE),
+            mean.z = mean(Z, na.rm = TRUE),
+            min.x = min(X, na.rm = TRUE),
+            min.y = min(Y, na.rm =TRUE),
+            min.z = min(Z, na.rm = TRUE),
+            kurt.x = kurtosis(X, na.rm = TRUE),
+            kurt.y = kurtosis(Y, na.rm =TRUE),
+            kurt.z = kurtosis(Z, na.rm = TRUE),
+            skew.x = skewness(X, na.rm = TRUE),
+            skew.y = skewness(Y, na.rm =TRUE),
+            skew.z = skewness(Z, na.rm = TRUE),
+            max.x = max(X, na.rm = TRUE),
+            max.y = max(Y, na.rm =TRUE),
+            max.z = max(Z, na.rm = TRUE),
+            sd.x = sd(X, na.rm = TRUE),
+            sd.y = sd(Y, na.rm =TRUE),
+            sd.z = sd(Z, na.rm = TRUE),
+            range.x = max.x - min.x,
+            range.y = max.y - min.y,
+            range.z = max.z - min.z
+            )
 
 ```
 
-
-```{r rf model preparation, include = FALSE}
-rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # data file prep'n described above
+```{r rf model preparation}
+rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # raw data file prep'n described above
 rf.data$behaviour = as.factor(rf.data$behaviour)
 rf.data$dog = NULL
 rf.data$X = NULL
 rf.data = as.data.frame(rf.data)
+rf.data$index = as.factor(row_number(rf.data$behaviour))
 
-g <- runif(nrow(rf.data))
-rf.data <- rf.data[order(g),] 
+rf.data <- rf.data[order(runif(nrow(rf.data))),] # re-ordering the rows of the df
 
-s1 = sample(nrow(rf.data), 0.80 * nrow(rf.data)) # Take 90% subset to train data, 10% to test
+rf.data_train <- rf.data %>% 
+  group_by(behaviour) %>%
+  slice(seq(n()*.8)) #  take 80% of each behaviour classification
 
-rf.data_train <- rf.data[s1,] # randomize the order of the training dataset
-rf.data_test <- rf.data[-s1,] # and the testing dataset
+rf.data_test = rf.data %>%
+  filter(!index %in% rf.data_train$index) # filter out rows that are NOT IN train dts
+rf.data_test$index = NULL #remove $index to avoid RF prediction compromise
+rf.data_train$index = NULL
 
+psd.data = read.csv("2020-07-24_cleaned-psd-rf-data.txt") # data file for psd dataset
+psd.data$behaviour = as.factor(psd.data$behaviour)
+psd.data$X = NULL
+psd.data = as.data.frame(psd.data)
+psd.data$index = row_number(psd.data$behaviour)
+
+psd.data <- psd.data[order(runif(nrow(psd.data))),] 
+
+psd.data_train <- psd.data %>% 
+  group_by(behaviour) %>%
+  slice(seq(n()*.8)) %>%
+  select(-burst)
+
+
+psd.data_test = psd.data %>%
+  filter(!index %in% psd.data_train$index) %>%
+  select(-burst)
+
+psd.data_train$index = NULL
+psd.data_test$index = NULL
+
+# Make sure both datasets do not have any indexing columns (e.g., $index, or $burst)
+# only response and predictor variable, otherwise predictions will be near 100% in the 
+# mTry loops
 ```
 
-```{r mtry code}
+```{r raw data mtry loop, cache = TRUE}
 set.seed(2807)
 model.mtry = c() # Do 'mtry' loop to identify best value for mtry
 i=21
@@ -162,47 +433,112 @@ for (i in 1:21) {
 }
 
 model.mtry.df = data.frame(mTry = c(1:21), Accuracy = c(model.mtry))
+model.mtry.df$Accuracy = percent(model.mtry.df$Accuracy)
 best.mtry = model.mtry.df %>%
   arrange(desc(Accuracy)) %>%
   slice(1)
 
+
 best.mtry = best.mtry$mTry
 
-(model.mtry.df.plot = ggplot(data = model.mtry.df, 
-                             aes(x = mTry, y = Accuracy )) + geom_point(stat = "identity", 
-                                                                     size = 3,
-                                                                     shape = "square",
-                                                                     color = "red"))
+(ggplot(data = model.mtry.df, aes(x = mTry, y = Accuracy )) + 
+    geom_point(stat = "identity", size = 3,shape = "square",color = "red") + scale_y_continuous(labels = scales::percent)
+)
+
+```
+`r fig_nums('predaccuracy')`
+
+```{r psd data mtry loop, eval = FALSE, include = FALSE}
+set.seed(2807)
+psd.model.mtry = c() # Do 'mtry' loop to identify best value for mtry
+i=21
+for (i in 1:21) {
+  psd.model.mtry.train <- randomForest(behaviour ~ ., data = psd.data_train, ntree = 500, mtry = i, importance = TRUE)
+  psd.predTest.mtry <- predict(psd.model.mtry.train, psd.data_test, type = "class")
+  psd.model.mtry[i] = mean(psd.predTest.mtry == psd.data_test$behaviour)
+}
+
+psd.model.mtry.df = data.frame(mTry = c(1:21), Accuracy = c(psd.model.mtry))
+psd.best.mtry = psd.model.mtry.df %>%
+  arrange(desc(Accuracy)) %>%
+  slice(1)
+
+psd.best.mtry = psd.best.mtry$mTry
+
+( ggplot(data = psd.model.mtry.df,aes(x = mTry, y = Accuracy )) + 
+    geom_point(stat = "identity", size = 3,shape = "square",color = "red"))
 
 
 ```
 
+```{r mtry plot, eval = FALSE, include = FALSE}
+# To have two plots showcasing the difference in accuracy between both datasets
+psd.model.mtry.df # psd
+model.mtry.df # raw
 
-```{r mtry plot}
-#model.mtry.df.plot
-#Prediction accuracy of randomforest model (2 second burst) with varying mtry variables
-# most optimum value is 16
+psd.accuracy = psd.model.mtry.df$Accuracy
+raw.accuracy = model.mtry.df$Accuracy
+plot.mtry.df = as.data.frame(cbind(psd.accuracy, raw.accuracy))
+plot.mtry.df$mTry = rep(1:21, each = 1)
+
+(ggplot(data = plot.mtry.df, aes(x = mTry)) +
+          geom_point(aes(y = psd.accuracy), color = "red", shape = 'square', size = 3) +
+          geom_point(aes(y = raw.accuracy), color = "green", shape = 'square', size = 3)
+)
 ```
-
 
 ```{r rf model construction}
 set.seed(2807)
-model = randomForest(behaviour ~., data = rf.data_train, 
-                        method = "class", ntree = 500, mtry = 15)
-predTest = predict(model, rf.data_test, type = "class")
+raw.model = randomForest(behaviour ~., data = rf.data_train, 
+                        method = "class", ntree = 500, mtry = best.mtry)
+raw.predTest = predict(raw.model, rf.data_test, type = "class")
+# 
+# PSD model removed for the time-being. Too much info ?
+# psd.model = randomForest(behaviour ~., data = psd.data_train, 
+#                         method = "class", ntree = 500, mtry = psd.best.mtry)
+# psd.predTest = predict(psd.model, psd.data_test, type = "class")
 
 ```
 
+``` {r variable importance, eval = FALSE, include = FALSE}
+#importance(model)
+varImpPlot(raw.model)
+#Importance of each variable for behaviour prediction accuracy
+
+```
+`r fig_nums('varimp')`
+
+```{r rfcv, eval = FALSE, include = FALSE}
+rfcv1 = as.data.frame(rf.data_train[,2:22])
+rfcv2 = as.data.frame(rf.data_train[,1])
+results = rfcv(rfcv1, rfcv2$behaviour, cv.fold = 5, scale = "log", step = 0.75)
+with(results, plot(n.var, error.cv, log="x", type="o", lwd=2))
+# Error rates are lowest when number of variables used range between 10 to 15? no different from just using mtry loop.
+```
+
+`r table_nums('predaccuracy')`
 ```{r rf model prediction inaccuracy}
 # stargazer(model$confusion, type = "text", summary = F)
-orig = as.data.frame(model$confusion[,1:7])
-orig$accuracy = percent(1-model$confusion[,8])
-stargazer(orig, type = 'text', summary = F)
+results.col = c("eat","forage","lie","run","sit","stand","walk")
+raw.results = 1-raw.model$confusion[,8]
+# psd.results = 1-psd.model$confusion[,8]
+# model.results = as.data.frame(cbind(results.col, raw.results, psd.results))
+# model.results$raw.results = percent(1-raw.model$confusion[,8])
+# model.results$psd.results = percent(1-psd.model$confusion[,8])
+# rownames(model.results) = c()
+
+raw.model.df = as.data.frame(raw.model$confusion[,1:7])
+raw.model.df$accuracy = percent(1-raw.model$confusion[,8])
+stargazer(raw.model.df, type = "text", summary = F)
+
+# psd.model.df = as.data.frame(psd.model$confusion[,1:7])
+# psd.model.df$accuracy = percent(1-psd.model$confusion[,8])
+# stargazer(psd.model.df, type = "text", summary = F)
 
 #Table for model for raw 2 sec burst training data
 ```
 
-```{r refining the rf model}
+```{r  rf prediction bar plot , eval = FALSE, include = FALSE}
 model.df = data.frame(Behaviour = c(model$classes),
                   Error = c(model$confusion[,8]))
 # 
@@ -235,40 +571,100 @@ model.individual.behaviour.plot = model.individual.behaviour.plot + coord_flip()
 model.individual.behaviour.plot 
 ```
 
-``` {r variable importance}
-#importance(model)
-varImpPlot(model)
-#Importance of each variable for behaviour prediction accuracy
+`r fig_nums('oob')`
 
-```
+```{r ntree out-of-bag OOB error}
+plot(raw.model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
 
-```{r ntree out-of-bag error}
-plot(model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
+# plot(psd.model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
 #shows the stability of the randomforest prediction after X no. of trees / importance of ntree
 ```
 
-``` {r rf results}
-x = table(predTest, rf.data_test$behaviour)
-z = as.data.frame.matrix(x) # 
+both models showed relatively consistent prediction accuracy rates with 500 trees.
+
+``` {r raw test data rf results}
+rf.table = table(rf.data_test$behaviour, raw.predTest)
+rf.table = as.data.frame.matrix(rf.table) # 
 
 accuracy = vector()
-for (i in 1:nrow(z)) {
+for (i in 1:nrow(rf.table)) {
 
-  accuracy[i] = max(z[i])/sum(z[i])
+  accuracy[i] = rf.table[i,i]/sum(rf.table[i,])
 }
 
-z = rbind(z, accuracy)
-zt = t(z)
-zt = as.data.frame(zt)
-zt$accuracy = percent(zt$"8")
-zt = zt %>% dplyr::select(eat, forage, lie, run, sit, stand, walk, accuracy)
+rf.table = cbind(rf.table, accuracy)
+rf.table = as.data.frame(rf.table)
+rf.table$accuracy = percent(rf.table$accuracy)
 
-# Prediction accuracy based on test data set
-
-percent(mean(predTest == rf.data_test$behaviour))
+stargazer(rf.table, type = "text", summary = FALSE)
+cp = percent(mean(raw.predTest == rf.data_test$behaviour)) # The mean no. of correct predictions based on the train dataset model in the test dataset
 ```
 
-```{r reading acc-thr data}
+As with most RF models, overfitting does occur when the RF model is tasked to predict on the subsampled testing dataset. The most stark differences lie in the prediction of the 'Eat' behaviour where the RF model's prediction accuracy fell from 51.5% to 23.5%.
+
+The ROC curve is a curve of probability, and a AUC near to 1 (higher AUC) is a good measure of separability. The RF model appears to be relatively sensitive to predicting the dogs' movement behaviours, with some distinction defined between motion and non-motion behaviours. For example, the 'Run' has the highest AUC followed by 'Walk' whereas non-movement based behaviours such as 'Sit'.
+
+The model has some difficulty telling apart 
+
+```{r plotting raw data ROC curve, eval = FALSE, include = FALSE}
+library(pROC)
+roc = as.data.frame(predict(raw.model, rf.data_test, type = "prob"))
+roc$predict = names(roc)[1:7][apply(roc[,1:7], 1, which.max)]
+roc$observed = rf.data_test$behaviour
+head(roc)
+
+
+
+roc.run = roc(ifelse(roc$observed=="run", "run", "non-run"), 
+              as.numeric(roc$run))
+# plot(roc.run, col = 'gray60')
+
+
+roc.eat = roc(ifelse(roc$observed=="eat", "eat", "non-eat"), 
+              as.numeric(roc$eat))
+# lines(roc.eat, col = 'green')
+
+roc.forage = roc(ifelse(roc$observed=="forage", "forage", "non-forage"), as.numeric(roc$forage))
+# lines(roc.forage, col = 'blue')
+
+roc.walk = roc(ifelse(roc$observed=="walk", "walk", "non-walk"), 
+               as.numeric(roc$walk))
+# lines(roc.walk, col = 'red')
+
+roc.lie = roc(ifelse(roc$observed=="lie", "lie", "non-lie"), 
+              as.numeric(roc$lie))
+#lines(roc.lie, col = 'brown')
+
+roc.sit = roc(ifelse(roc$observed=="sit", "sit", "non-sit"), 
+              as.numeric(roc$sit))
+#lines(roc.sit, col = 'orange')
+
+roc.stand = roc(ifelse(roc$observed=="stand", "stand", "non-stand"), as.numeric(roc$stand))
+#lines(roc.stand, col = 'purple')
+
+
+roc.list = list()
+roc.list[[1]] = roc.run
+roc.list[[2]] = roc.walk
+roc.list[[3]] = roc.forage
+roc.list[[4]] = roc.lie
+roc.list[[5]] = roc.sit
+roc.list[[6]] = roc.stand
+roc.list[[7]] = roc.eat
+
+g = ggroc(list(run = roc.run, walk = roc.walk, forage = roc.forage, lie = roc.lie,
+               sit = roc.sit, stand = roc.stand, eat = roc.eat))
+g
+
+auc.roc = (auc(roc.run) + auc(roc.walk) + auc(roc.forage) + auc(roc.lie) + auc(roc.sit) + auc(roc.stand) + auc(roc.eat))/7
+auc.roc
+```
+the mean prediction accuracy of the raw model was `r cp`.
+looking at the prediction accuracy of the individual behaviours, the RA model predicted poorly for the behaviours 'eat' and 'forage' and middingly for 'stand'. 'Eat' was most often mis-classifed 
+All other behaviours were predicted relatively well.
+
+
+```{r reading acc-thr data, include = FALSE}
 df = read.csv("2020-07-20_mla-train-data.csv")
 df$X = NULL
 df$dog = as.factor("newguys")
@@ -296,7 +692,7 @@ still = rbind (lie, sit, stand)
 
 ```
 
-```{r choosing variance values for behaviours}
+```{r estimating variance values for behaviours, include = FALSE}
 walk = walk[1:(round(nrow(walk)/26)*26),]
 walk$index = rep(1:(nrow(walk)/26), each = 26)
 
@@ -360,7 +756,8 @@ stand.var = stand %>%
   mutate(behaviour = "stand")
 ```
 
-```{r visualizing chosen variance values}
+`r table_nums("accthrtable")`
+```{r table acc-thr}
 move = rbind(walk.var, run.var, forage.var)
 move = na.omit(move)
 move$behavior = as.factor(move$behaviour)
@@ -381,22 +778,31 @@ all.variance.table = df.all %>% # The greatest difference between variance value
             mean.Z = mean(var.z)) %>%
   arrange(mean.Z)
 
+stargazer(all.variance.table, type = 'text', summary = F)
+
 ```
 
 
+`r fig_nums("accthrplot")`
 ```{r ground truthing the acc-thr value}
-match = read.csv('2020-07-21_acc-thr_gps-cleaned.csv') # manual-cleaned gps data
+match = read.csv('2020-07-21_acc-thr_gps-cleaned2.csv') # manual-cleaned gps data
 match$burst = match$X
+match$time.diff4 = as.factor(match$time.diff3)
 
-ggplot(match, aes(x = burst)) +
+match$minutes = match$sampled.time/60
+
+ggplot(match, aes(x = minutes)) +
   geom_line(aes(y = var.x), color = 'red') + 
   geom_line(aes(y = var.y), color = 'green') + 
   geom_line(aes(y = var.z), color = 'blue') + 
-  geom_point(aes(y = time.diff3*50000), color = 'black')
+  geom_point(aes(y = as.numeric(time.diff3*50000)), size = 2) + 
+  scale_y_continuous("Variance in acceleration", sec.axis = sec_axis(~ . / 50000, name = "Presence of quick burst GPS")) + 
+  labs( x = "Sampling duration [min]")
 
 # Set acc-thr as decided in above section in the gps collar, and 
-#took 4 different dogs for a walk with a planned route.
+# took 4 different dogs for a walk with a planned route.
 ```
+`r fig_nums("accthrplot")`
 
 # Results 
 
