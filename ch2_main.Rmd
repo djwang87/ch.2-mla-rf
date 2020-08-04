@@ -3,23 +3,24 @@ title: "chapter 2 - RF model"
 author: "Dajun Wang"
 date: "11/9/2019"
 output:
+  word_document:
+    toc: no
+  html_document:
+    toc: no
+    df_print: paged
   pdf_document:
     toc: no
     number_sections: yes
     fig_caption: yes
     df_print: kable
     highlight: tango
-  html_document:
-    toc: no
-    df_print: paged
-  word_document:
-    toc: no
 fontsize: 11pt
 geometry: margin = 1.2in
 bibliography: ../../PhD/zot-library.bib
 editor_options:
   chunk_output_type: console
 spacing: double
+always_allow_html: true
 mainfont: Times New Roman
 header-includes:
 - \setlength\parindent{24pt}
@@ -91,7 +92,7 @@ cat(tabl.dogtasks) # output good for HTML/PDF/docx conversion, use markdown tabl
 
 For the purpose of collecting data to train the RF models (i.e., training dataset), the wildlife tracking collar was programmed to sample continuously at 10 hz, and the collar was mounted such that the x-, y-, and z- axes of the tri-axial acclerometer were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. The design and alignment of the collar provided the tri-axial acceleromenter the capacity to measure the surge (back and forth movement on the x-axis), sway (left and right motion on the y-axis) and heave (up and down on the z-axis) motion of the animal. Data was collected in October 2016 and May 2019 in a grassy field to a) simulate the environment where the intended free-roaming dogs for study are typically found, and b) provide sufficient ground for the dogs to move continuously. The terrain selected for this component was relatively flat to avoid compromising the gravitional forces acting on the heave axis.
 
- All behavioural tasks (`r table_nums('dogtask', display = "cite")`) were performed continuously for at least 2 min in a stipulated sequence, except for Forage, Eat and Run as these tasks are either too energetically taxing or behaviourally inconsistent. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained. The collected accelerometery data was viewed with an acceleration viewer ([http://www.movebank.org](https://www.movebank.org), version 33) and the time-stamps of the collected accelerometer measurements were synchronized and labelled manually to the time-stamps of the video recordings of each performed behavioural task. This complete labelled dataset was subsequently used in the preparation and construction of the predictive RF model. 
+ All behavioural tasks (`r table_nums('dogtask', display = "cite")`) were performed continuously for at least 2 min in a stipulated sequence, except for Forage, Eat and Run as these tasks are either too energetically taxing or behaviourally inconsistent. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained. The collected accelerometery data was viewed with an acceleration viewer (http://www.movebank.org, version 33) and the time-stamps of the collected accelerometer measurements were synchronized and labelled manually to the time-stamps of the video recordings of each performed behavioural task. This complete labelled dataset was subsequently used in the preparation and construction of the predictive RF model. 
 
 In preparation of the training dataset, the labelled acceleration measurements were binned into two-second windows (or 'bursts') to accomodate at least two full strides for motion-based dog behaviours (i.e., walking, foraging) without influence from un-intentional behavioural transitions. Subsequently, series of summary statistics (mean, min, max, kurtosis, skewness, range, standard deviation; `r table_nums('summstats', display = 'cite')`) for all three axes were applied onto each labelled burst of accelerometer measurements to characterize the accelerometery measurements of the different behavioural tasks and describe the predictor variables used in the RF model. 
 
