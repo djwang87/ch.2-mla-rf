@@ -22,3 +22,6 @@ formattable
 reshape2
 lme4
 e1071
+zoo
+rgl
+animalTrack
