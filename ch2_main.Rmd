@@ -26,6 +26,9 @@ header-includes:
 - \setlength\parindent{24pt}
 - \usepackage{indentfirst}
 - \usepackage{setspace}\doublespacing
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
 ---
 ```{r global options, cache=FALSE, include=FALSE}
 set.seed(2807)
@@ -35,7 +38,7 @@ options(tinytex.verbose = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-list.of.packages <- c("lubridate", "dplyr", "ggplot2","randomForest", "corrplot", "knitr", "glmm", "tinytex","xtable","ggcorrplot","stargazer","kableExtra", "captioner","formattable", "reshape2", "lme4", "e1071") 
+list.of.packages <- c("lubridate", "dplyr", "ggplot2","randomForest", "corrplot", "knitr", "glmm", "tinytex","xtable","ggcorrplot","stargazer","kableExtra", "captioner","formattable", "reshape2", "lme4", "e1071","zoo", "animalTrack", "janitor") 
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(unlist(new.packages))
@@ -48,310 +51,764 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE)
 ```
 
+
 ```{r captioner, include = FALSE}
 table_nums = captioner(prefix = 'Table')
+table_nums(name = 'dogtask', caption = "Description of fine-scale behavioural tasks performed by kennel club-trained domestic dogs.")
+table_nums(name = 'coarsetask', caption = "Description of the coarse-scale behavioural tasks re-categorized from footages of fine-scale dog behaviours.")
 table_nums(name = "summstats", caption = "Predictor variables and their statistic labels used for predicting dog behavioural tasks in the random forest models.")
-table_nums(name = 'dogtask', caption = "Description of the behavioural tasks performed by kennel club-trained domestic dogs.")
-table_nums(name = "trainpred", caption = "The results of the RF model predicting on the training dataset.")
-table_nums(name = "testpred", caption = "The results of the RF model predicting on the testing dataset.")
-table_nums(name = "accthrtable", caption = "The mean variance of acceleromenter measurements for predicted movement behaviours in dogs.")
+table_nums(name = "fft.train", caption = "Confusion matrix of actual (rows) vs. predicted (columns) of fine-scale dog behaviours derived from the Random Forest model constructed with the Fast-fourier transformation (FFT) dataset.")
+table_nums(name = "raw.train", caption = "Confusion matrix of actual (rows) vs. predicted (columns) of fine-scale behaviours derived from the Random Forest model constructed with the raw acceleration measurement (RAW) dataset.")
+table_nums(name = "coarse.raw.train", caption = "A confusion matrix of actual (rows) vs. predicted (columns) of coarse-scale behaviours derived from the Random Forest model constructed with the raw acceleration measurement (RAW) dataset.")
+table_nums(name = "coarse.train", caption = "A confusion matrix of actual (rows) vs. predicted (columns) of coarse-scale behaviours derived from the Random Forest model constructed with the Fast-fourier transformation (FFT) dataset.")
+table_nums(name = "grouped.train", caption = "A confusion matrix of actual (rows) vs. predicted (columns) of grouped fine-scale behaviours derived from the Random Forest model constructed with the Fast-fourier transformation (FFT) dataset.")
+table_nums(name = "accthrtable", caption = "The mean, minimum and maximum variance values of acceleromenter measurements for the movement behaviours of dogs.")
 
 fig_nums <- captioner()
-fig_nums(name = 'mtry', caption = "The prediction accuracies of the RF models constructed with a range of mTry values mirroing the number of predictor variables used.")
-fig_nums(name = 'varimp', caption = "The variable importance of the predictor variables used in the best predictive RF model.")
-fig_nums(name = 'oob', caption = "The Out-Of-Bag error estimates for the predictive RF model plotted against the number of trees (*n*) used.")
-fig_nums(name = "accthrplot", caption = "The sampling of GPS re-locations based with an accelerometer threshold of 10,000 in the Z axis. The red, green and blue lines represents variance in acceleration measurements collected from the X, Y and Z axis.")
+fig_nums(name = 'mtry', caption = "The prediction accuracies of the Random Forests models constructed with a range of mTry values mirroring the number of predictor variables used. The red and blue lines represent the Random Forest models constructed with the Fast-fourier transformation (FFT) and raw acceleration measurement (RAW) datasets respectively.")
+fig_nums(name = 'oob', caption = "The Out-Of-Bag error estimates of the Random Forest model plotted against the number of trees (*n*) used in making predictions. The red and blue dots represents the fine-scale Random Forest models constructed with the Fast-fourier transformation (FFT) and raw acceleration measurement (RAW) datasets respectively.")
+fig_nums(name = "accthrplot", caption = "The sampling of GPS re-locations based with an accelerometer threshold of 10,000 in the Z axis. The red, green and blue lines represents variance in acceleration measurements collected from the X, Y and Z axis respectively.")
 ```
 
 # Introduction
 
-
 # Material and methods
 
-## Random forest model construction
+Random Forests (RF) is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that cannot be easily fitted with traditional methods such as generalized linear models. Through the use of tri-axial accelerometery measurements (i.e., acceleration values), RF models can also be used to predict unobservable behaviours in wild, free-ranging animals based on information collected from examining captive animals. To do this, the RF model must first be trained to recognize labelled behaviours in a 'training' dataset with decision trees constructed with suitable predictor variables (`r table_nums('summstats', display = 'cite')`) used for classifying behaviours (`r table_nums('dogtask', display = "cite")`). 
 
-Random Forests (RF) is a relatively novel and powerful machine learning algorithm that has been reported to work well with complex ecological data that  cannot be easily fitted with traditional methods such as generalized linear models [@Cutler2007]. Through the use of tri-axial accelerometery measurements (i.e., acceleration values), RF models can also be used to predict unobservable behaviours in wild, free-rangubg animals based on information collected from examining captive animals. To do this, the RF model must first be trained to recognize and predict labelled behaviours in a 'training' dataset with decision trees constructed with suitable predicor variables (`r table_nums('summstats', display = 'cite')`) used for classifying and predicting behaviours (`r table_nums('dogtask', display = "cite")`).
+## Data collection
 
-For the classification and labelling of known behaviours in accelerometery data, I collared 11 healthy adult dogs of three different dog breeds: German shepherds (n = 9, six males and three females, age range: 1–8 years, mean age: 5 years old, Rottweiler (n = 1, male, age: 8 years old) and Golden Retriever (n = 1, male, age: 1 year old) with an accelerometer-equipped wildlife tracking collar (Type 1C-heavy, E-obs GmbH; Grünwald, Germany). The wildlife tracking collar used in this chapter is also used for collaring and tracking free-roaming dogs in the subsequent chapters. All eleven dogs were well-trained individuals that could perform the selected repertoire of movement behaviours (`r table_nums('dogtask', display = "cite")`) solely with verbal instructions from their trainer while being off-leash. 
+For the labelling of known behaviours in accelerometery data, I collared 11 healthy adult dogs of three different dog breeds: German shepherds (n = 9, six males and three females, age range: 1–8 years, mean age: 5 years old, Rottweiler (n = 1, male, age: 8 years old) and Golden Retriever (n = 1, male, age: 1 year old) with an accelerometer-equipped wildlife tracking collar (Type 1C-heavy, E-obs GmbH; Grünwald, Germany). The wildlife tracking collar used in this chapter is also used for collaring and tracking free-roaming dogs in the subsequent chapters. All eleven dogs were well-trained individuals that could perform the selected repertoire of movement behaviours (`r table_nums('dogtask', display = "cite")`) solely with the verbal commands of their trainer while being off-leash. 
 
 `r table_nums('dogtask')`
-```{r table dogtasks, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
-tabl.dogtasks <- "
-| Behaviour | Description |
-|-|-|
-| Stand | Individual under study is standing on all four limbs with no visible locomotion. Resting posture of the dog's head will vary between individuals. |
-| Lie | Individuals under study is lying prone on the ground with all limps extended out. For some individuals, the dog may be lying fully on its side. In all recordings, there was no visible locomotion. |
-| Sit | Individual under study is sitting on its haunches with no visible locomotion. Similar to Stand, head posture may vary per individual but body posture remains relatively similar. |
-| Eat | Individual under studying is eating or drinking from a bowl whilst standing. No visible locomotion but the posture of the head is angled approximately 45° downwards. |
-| Walk | Individual under study is walking freely without leash at the same speed of the handler. |
-| Forage | Similar to Walk but the position of the dog's head is angled downwards as it sniffs for hidden treats on the ground. |
-| Run | Individual under study is sprinting after a tossed ball. Task is considered completed once the tossed ball has been received by the dog. |
-"
-cat(tabl.dogtasks) # output good for HTML/PDF/docx conversion, use markdown table generator
+```{r table dogtasks}
+tabl.dogtasks = data.frame(Behaviour = c("Eat", "Stand", "Lie", "Sit", "Walk", "Forage", "Run"),
+                  Description = c("Individual under studying is eating or drinking from a bowl whilst standing. No visible locomotion but the posture of the head is angled approximately 45° downwards.",
+                  "Individual under study is standing on all four limbs with no visible locomotion. Resting posture of the dog's head will vary between individuals.",
+                  "Individuals under study is lying prone on the ground with all limps extended out. For some individuals, the dog may be lying fully on its side. In all footages, there was no visible movement.",
+                  "Individual under study is sitting on its haunches with no visible movement. Similar to 'Stand', head posture varies between individuals but body posture remains similar.",
+                  "Individual under study is walking freely off-leash with no visible acceleration.",
+                  "Similar to 'Walk' but the position of the dog's head is angled downwards as it searches for treats on the ground.",
+                  "Individual under study is moving significantly faster than 'Walk' (e.g., trotting, running). The dog was tasked to chase after a tossed ball, and the task is considered completed once the tossed ball has been received by the dog."),
+  check.names = FALSE
+)
+
+kable(tabl.dogtasks, "latex", booktabs = T, align = 'c') %>%
+  kable_styling(position = "center") %>%
+  column_spec(1, bold = T) %>%
+  column_spec(2, width = "30em")
+  
+
 ```
 
-For the purpose of collecting data to train the RF models (i.e., training dataset), the wildlife tracking collar was programmed to sample continuously at 10 hz, and the collar was mounted such that the x-, y-, and z- axes of the tri-axial acclerometer were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. The design and alignment of the collar provided the tri-axial acceleromenter the capacity to measure the surge (back and forth movement on the x-axis), sway (left and right motion on the y-axis) and heave (up and down on the z-axis) motion of the animal. Data was collected in October 2016 and May 2019 in a grassy field to a) simulate the environment where the intended free-roaming dogs for study are typically found, and b) provide sufficient ground for the dogs to move continuously. The terrain selected for this component was relatively flat to avoid compromising the gravitional forces acting on the heave axis.
+For the purpose of collecting data to construct the RF models, the wildlife tracking collar was programmed to sample continuously at 10 hz, and the collar was mounted such that the x-, y-, and z- axes of the tri-axial acclerometer were parallel to the median (surge), the dorsal (sway), and the dorsal (heave) planes of the animal, respectively. The design and alignment of the collar provided the tri-axial acceleromenter the capacity to measure the surge (back and forth movement on the x-axis), sway (left and right motion on the y-axis) and heave (up and down on the z-axis) motion of the animal. Data was collected in October 2016 and May 2019 in a grassy field to a) simulate the environment where the intended free-roaming dogs for study are typically found, and b) provide sufficient ground for the dogs to move continuously. The terrain selected for this component was relatively flat to avoid compromising the gravitional forces acting on the heave axis.
 
- All behavioural tasks (`r table_nums('dogtask', display = "cite")`) were performed continuously for at least 2 min in a stipulated sequence, except for Forage, Eat and Run as these tasks are either too energetically taxing or behaviourally inconsistent. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with consent from their trainer), and approximately 300 minutes of video-recorded behavioural observations were obtained. The collected accelerometery data was viewed with an acceleration viewer (http://www.movebank.org, version 33) and the time-stamps of the collected accelerometer measurements were synchronized and labelled manually to the time-stamps of the video recordings of each performed behavioural task. This complete labelled dataset was subsequently used in the preparation and construction of the predictive RF model. 
+`r table_nums('coarsetask')`
+```{r table coarsetasks}
+tabl.coarsetasks = data.frame(Behaviour = c("Eat", "Fast", "Slow", "Stationary"),
+                  Description = c("Repeated as fine-scale 'Eat' behaviour.",
+                                  "Repeated as fine-scale 'Run' behaviour",
+                  "Grouped behaviour consisting of 'Walk' and 'Forage' to represent a moving dog with slower locomotion",
+                  "Grouped behaviours consisting of 'Sit', 'Stand', and 'Lie' to represent a completely still dog."),
+  check.names = FALSE
+)
 
-In preparation of the training dataset, the labelled acceleration measurements were binned into two-second windows (or 'bursts') to accomodate at least two full strides for motion-based dog behaviours (i.e., walking, foraging) without influence from un-intentional behavioural transitions. Subsequently, series of summary statistics (mean, min, max, kurtosis, skewness, range, standard deviation; `r table_nums('summstats', display = 'cite')`) for all three axes were applied onto each labelled burst of accelerometer measurements to characterize the accelerometery measurements of the different behavioural tasks and describe the predictor variables used in the RF model. 
+kable(tabl.coarsetasks, "latex", booktabs = T, align = 'c') %>%
+  kable_styling(position = "center") %>%
+  column_spec(1, bold = T) %>%
+  column_spec(2, width = "30em")
+```
+
+In the collection of accelerometer measurements for fine-scale movement behaviours, the dogs were instructed to perform the 'fine-scale' behavioural tasks (`r table_nums('dogtask', display = "cite")`) continuously for at least 2 min in a stipulated sequenceexcept for Forage, Eat and Run as these tasks are either energetically taxing for the dogs or behaviourally inconsistent. Each dog was tasked to perform the entire repertoire of behaviours at least twice (with verbal commands from their trainer), and approximately 300 minutes of video footages were obtained. As for the collection of 'coarse-scale' behaviours, footages containing fine-scale movement behaviours and their associated accelerometer measurements from the aforementioned component were re-categorized accordingly (`r table_nums('coarsetask', display = "cite")`).
 
 `r table_nums('summstats')`
-```{r table summstats, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
-tabl.summstats <- "
-| Statistics label | Predictor variables |  Description  |
-|:-:|:-:|:-:|
-| Mean | mean.x  mean.y  mean.z | The calculated mean of the acceleration measurements within each burst for axes x, y and z. |
-| Min | min.x min.y min.z | The smallest acceleration measurement within each burst for axes x, y and z. |
-| Max | max.x max.y max.z | The largest acceleration measurement within each burst for axes x, y and z. |
-| Kurtosis | kurt.x kurt.y kurt.z | The relative flatness of the acceleration measurements within each burst for axes x, y and z. |
-| Skew | skew.x skew.y skew.z | The relative skewness of the acceleration measurements within each burst for axes x, y and z. |
-| Range | range.x range.y range.z | The calculated difference between the largest and smallest acceleration measurements of axes x, y, and z. |
-| Standard deviation | sd.x sd.y sd.z | The calculated standard deviations of the acceleration measurements of axes x, y, and z. |
-"
-cat(tabl.summstats) # output good for HTML/PDF/docx conversion, use markdown table generator
+```{r table summstats}
+tabl.summstats = data.frame(Labels = c("Mean", "Min", "Max", "Kurtosis", "Skewness", 
+                                       "Range", "Standard deviation", "Pitch", "Roll",
+                                       "Overall Dynamic Body Acceleration"),
+                            Variables = c("mean.x, mean.y, mean.z", "min.x, min.y, minz",
+                                          "max.x, max.y, max.z",
+                                          "kurt.x, kurt.y, kurt.z", "skew.x, skew.y, skew.z", "range.x, range.y, range.z", "sd.x. sd.y, sd.z", "pitch", "roll", "ODBA"),
+                            Description = c("The calculated mean of the acceleration measurements within each burst for axes x, y and z.",
+                                            "The smallest acceleration measurement within each burst for axes x, y and z.",
+                                            "The largest acceleration measurement within each burst for axes x, y and z.",
+                                            "The relative flatness of the acceleration measurements within each burst for axes x, y and z.",
+                                            "The relative skewness of the acceleration measurements within each burst for axes x, y and z.",
+                                            "The calculated difference between the largest and smallest acceleration measurements of axes x, y, and z.",
+                                            "The calculated standard deviations of the acceleration measurements of axes x, y, and z.",
+                                            "The calculated ratio between axes x, y, and z.",
+                                            "The calculated angle between axes y and z.",
+                                            "The sum of the dynamic acceleration values of axes x, y, and z."))
+
+
+kable(tabl.summstats, "latex", longtable = T, booktabs = T) %>%
+    kable_styling(position = "center", latex_options = c("repeat_header")) %>%
+  column_spec(1, bold = T, width = "10em") %>%
+  column_spec(2, width = "8em") %>%
+  column_spec(3, width = "20em")
 ```
 
-The `randomForest` package [@liawClassificationRegressionRandomForest2002] in `R` was then used to prepare and construct the RF model used for predicting dog behaviours. The labelled dataset was subsampled at a 80% proportion as a training dataset to prepare the RF model, while the remaining 20% was used as a testing and validation dataset. The default number of trees (*n* = 500) were used in the RF model construction as the Out-of-Bag (OOB) error estimates, a method of measuring prediction error rates, was found to be consistently stable (`r fig_nums('oob', display = 'cite')`). To refine and improve the RF model's predictive capacity, I cross validated the RF models by comparing the prediction accuracies of RF models constructed (*n* = 21; `r fig_nums("mtry", display = 'cite')`) with a range of mTry values mirroring the number of described predictor variables (`r table_nums('summstats', display = 'cite')`). Following which, the best predictive RF model was constructed and the classification error rate and mean prediction accuracy of each behavioural task in the model were tallied and tabled (`r table_nums("trainpred", display = 'cite')`).
+## Data Management
+
+The collected accelerometery data was viewed with an acceleration viewer (http://www.movebank.org, version 33) and the time-stamps of the collected accelerometer measurements were synchronized and manually labelled to the time-stamps of the video footages of each behavioural task. The labelled acceleration measurements were binned into two-second windows (or 'bursts') which accomodates at least two full strides of movement-based dog behaviours (i.e., walking, foraging) while reducing the influence of un-intentional behavioural transitions.
+
+For the construction of RF models, a raw acceleration (RAW) dataset was derived by applying a series of summary statistics (`r table_nums('summstats', display = 'cite')`) onto each labelled burst of raw acceleration measurements from all three axes. In addition, the periodic properties of the acceleration signals in each labelled burst of accelerometer measurement allowed me to apply a fast Fourier transformation in order to determine the frequency of each particular movement, thus deriving a fast-Fourier transformed (FFT) dataset. For both RAW and FFT dataset, the Overall Dynamic Body Acceleration (ODBA) was also included by summing the absolute dynamic acceleration of each burst after removing the static acceleration component (running mean of 2s; @gleissMakingOverallDynamic2011). In total, 24 predictor variables were calculated from each burst of (transformed) data and these variables have been used in other movement-based studies [@wangMovementRestingAttack2015; @nathanUsingTriaxialAcceleration2012]
+
+## The construction of RF models
+
+The `randomForest` package [@liawClassificationRegressionRandomForest2002] in `R` was used to prepare and construct the various models used for classifying dog behaviours. In the construction of all RF models, the labelled datasets were randomly subsampled at a 80% proportion to form a training dataset for preparing the RF model while ensuring that each specific behaviour were sufficiently represented where possible. In addition, the default number of trees (*n* = 500) were used in the RF model construction as the Out-of-Bag (OOB) error estimates, a method of examining classification error rates, were found to be consistently stable (`r fig_nums('oob', display = 'cite')`) across all models. 
+
+To maximise the RF model's classification capabilities, I cross validated the RF models by comparing the classification accuracies of RF models constructed (*n* = 24) with a range of mTry values mirroring the number of described predictor variables (`r table_nums('summstats', display = 'cite')`) used. The mTry value represents the number of predictor variables used for making a classification (@liawClassificationRegressionRandomForest2002; i.e., splitting a 'tree node'), and the use of an optimum mTry value contributes significantly to the RF model's classification accuracy.
+
+For the classification of fine-scale and coarse-scale behaviours, two different RF models were constructed for each type of classification based on the type of dataset used (i.e., raw acceleration (RAW) or fast Fourier transformation (FFT)). In the comparison of classification accuracies within each scale, I used accuracy, precision and recall to measure the behaviour classification performance of each model. Accuracy is the overall measure of the model's classification capacity and is defined as the proportion of correctly classified behaviour. For individual behaviours, precision is defined as the proportion of positive classifications from the actual behaviours (e.g., no. of positive / no. of actual) while recall (also deemed as sensitivity) refers to the proportion of model predictions that were positive (e.g., no. of positive / no. of wrong) [@bidderLoveThyNeighbour2014].
+
+Accuracy was used as the overall performance metric due to its simplicity and the fact that it takes into account all classification outcomes [@bidderLoveThyNeighbour2014]. To evaluate classification performance of each individual behaviour, precision was used as the main performance metric as it is most applicable to biological inferences which generally rely on true positive classifications, as was the case in this study [@bidderLoveThyNeighbour2014]. Recall was included as recommended by @bidderLoveThyNeighbour2014 as it allows one to examine the model's capacity to produce positive classifications and compares between classification methods.
 
 ## Accelerometer threshold accelerometer-informed GPS sampling
 
 The wildlife tracking collar is equipped with the capacity to sample GPS relocations dynamically based on the accelerometer measurements collected in real-time. With the use of a selected accelerometer threshold (ACT), reseachers are able to selectively intensify the sampling of GPS re-locations only when the animal is moving (hence higher variance in accelerometer readings). This feature not only reduces the energy and memory consumption during the research period, it also allows the researcher to identify movement paths or patterns that are ecologically interesting (e.g., predation or harrassement events).
 
 For this function to work realistically, I used the above constructed RF model to identify the variances of the predicted movement behaviours and selected a variance value (`r table_nums('accthrtable', display = 'cite')`) for the axis that best represents movement or motion in a dog (i.e., Z axis; the acceleration in the heave axis typified by the rolling gait in dogs). Following which, I ground truth the selected variance by walking four dogs (Mongrel breeds, 4 females, age range 2-7 years old) with the wildlife tracking collar equipped. All dogs were walked continuously for approximately ten minutes, and with the studied dog resting (with the collar on) only in the beginning and end of each walk. The dogs were rested in a non-motion movement behaviour (e.g., lying, sitting or standing) to simulate the resting behaviour of free-roaming dogs in the wild. The GPS and ACC dataset were then retrieved from the collar, and the occurence of quick- and long-burst gps relocations were plotted sequentially against the variance of the accelerometer measurements collected from all three axes (`r fig_nums("accthrplot", display = "cite")`). 
-```{r rf data preparation, eval=FALSE, include=FALSE}
-data = read.csv("2020-07-20_mla-train-data.csv")
-data$X = NULL
-data$dog = as.factor("newguys")
-data = data %>%
-  mutate(behaviour = annotation,
-         X = acceleration.x,
-         Y = acceleration.y,
-         Z = acceleration.z) %>%
-  select(dog, sample, burst.timestamp, sample.timestamp, X, Y, Z, behaviour)
-  
 
-train.data = read.csv("acc_randomforest-training-data03.csv")
-train = rbind(train.data, data)
-
-eat = filter(train, behaviour == "eat") 
-eat$index = rep(1:(nrow(eat)/20), each = 20)
-forage = filter(train, behaviour == "forage")
-forage$index = rep(1:(nrow(forage)/20), each = 20)
-lie = filter(train, behaviour == "lie")
-lie$index = rep(1:(nrow(lie)/20), each = 20)
-run = filter(train, behaviour == "run")
-run$index = rep(1:(nrow(run)/20), each = 20)
-sit = filter(train, behaviour == "sit")
-sit$index = rep(1:(nrow(sit)/20), each = 20)
-stand = filter(train, behaviour == "stand")
-stand$index = rep(1:(nrow(stand)/20), each = 20)
-walk = filter(train, behaviour == "walk")
-walk$index = rep(1:(nrow(walk)/20), each = 20)
-
-train.data = rbind(eat, forage, lie, run, sit, stand, walk)
+```{r fine-scale data prep, include = FALSE}
+train.data = read.csv("2020-08_10_mla-train-data.txt") # latest train set, incl. new dogs
+train.data$X.1 = NULL
 
 # Preparing the summ stats of the model
-rf.data = train.data %>%
-  group_by(dog, behaviour, index)%>%
+fine.data = train.data %>%
+  group_by(dog, behaviour, index) %>%
+  mutate(ra.x = rollmean(X, 20), # rolling mean for smoothing parameter
+         ra.y = rollmean(Y, 20),
+         ra.z = rollmean(Z, 20))%>%
+  mutate(dy.X = X - ra.x, # to attain dynamic body acceleration to be used for ODBA
+         dy.Y = Y - ra.y,
+         dy.Z = Z - ra.z) %>%
+  mutate(abs.X = abs(dy.X), # absolute acceleration for ODBA
+         abs.Y = abs(dy.Y),
+         abs.Z = abs(dy.Z),
+         pitch = animalTrack::pitch(dy.X, dy.Y, dy.Z), # finding pitch raw accel
+         roll = animalTrack::roll(dy.Y, dy.Z)) %>% # finding roll raw accel
+  mutate(fft.X = Re(fft(X)), # FFT dataset
+         fft.Y = Re(fft(Y)),
+         fft.Z = Re(fft(Z))) %>%
+  mutate(fft.pitch = animalTrack::pitch(fft.X, fft.Y, fft.Z),
+         fft.roll = animalTrack::roll(fft.Y, fft.Z))
+
+
+fine.raw = fine.data %>% # raw accel dataset
+  group_by(dog, behaviour, index) %>%
   summarize(behaviour = first(behaviour),
-            mean.x = mean(X, na.rm = TRUE),
-            mean.y = mean(Y, na.rm =TRUE),
-            mean.z = mean(Z, na.rm = TRUE),
-            min.x = min(X, na.rm = TRUE),
-            min.y = min(Y, na.rm =TRUE),
-            min.z = min(Z, na.rm = TRUE),
-            kurt.x = kurtosis(X, na.rm = TRUE),
-            kurt.y = kurtosis(Y, na.rm =TRUE),
-            kurt.z = kurtosis(Z, na.rm = TRUE),
-            skew.x = skewness(X, na.rm = TRUE),
-            skew.y = skewness(Y, na.rm =TRUE),
-            skew.z = skewness(Z, na.rm = TRUE),
-            max.x = max(X, na.rm = TRUE),
-            max.y = max(Y, na.rm =TRUE),
-            max.z = max(Z, na.rm = TRUE),
-            sd.x = sd(X, na.rm = TRUE),
-            sd.y = sd(Y, na.rm =TRUE),
-            sd.z = sd(Z, na.rm = TRUE),
-            range.x = max.x - min.x,
-            range.y = max.y - min.y,
-            range.z = max.z - min.z
-            )
+            mean.X = mean(X, na.rm = TRUE),
+            mean.Y = mean(Y, na.rm =TRUE),
+            mean.Z = mean(Z, na.rm = TRUE),
+            min.X = min(X, na.rm = TRUE),
+            min.Y = min(Y, na.rm =TRUE),
+            min.Z = min(Z, na.rm = TRUE),
+            kurt.X = kurtosis(X, na.rm = TRUE),
+            kurt.Y = kurtosis(Y, na.rm =TRUE),
+            kurt.Z = kurtosis(Z, na.rm = TRUE),
+            skew.X = skewness(X, na.rm = TRUE),
+            skew.Y = skewness(Y, na.rm =TRUE),
+            skew.Z = skewness(Z, na.rm = TRUE),
+            max.X = max(X, na.rm = TRUE),
+            max.Y = max(Y, na.rm =TRUE),
+            max.Z = max(Z, na.rm = TRUE),
+            sd.X = sd(X, na.rm = TRUE),
+            sd.Y = sd(Y, na.rm =TRUE),
+            sd.Z = sd(Z, na.rm = TRUE),
+            range.X = max.X - min.X,
+            range.Y = max.Y - min.Y,
+            range.Z = max.Z - min.Z,
+            pitch = mean(pitch),
+            roll = mean(roll),
+            odba = sum(abs.X, abs.Y, abs.Z)) %>%
+  mutate(type = "fine.raw")
 
-rf.data = select(rf.data, -index)
-# Write the data above
+fine.fft = fine.data %>% # fft dataset
+  group_by(dog, behaviour, index) %>%
+  summarize(behaviour = first(behaviour),
+            mean.X = mean(fft.X, na.rm = TRUE),
+            mean.Y = mean(fft.Y, na.rm =TRUE),
+            mean.Z = mean(fft.Z, na.rm = TRUE),
+            min.X = min(fft.X, na.rm = TRUE),
+            min.Y = min(fft.Y, na.rm =TRUE),
+            min.Z = min(fft.Z, na.rm = TRUE),
+            kurt.X = kurtosis(fft.X, na.rm = TRUE),
+            kurt.Y = kurtosis(fft.Y, na.rm =TRUE),
+            kurt.Z = kurtosis(fft.Z, na.rm = TRUE),
+            skew.X = skewness(fft.X, na.rm = TRUE),
+            skew.Y = skewness(fft.Y, na.rm =TRUE),
+            skew.Z = skewness(fft.Z, na.rm = TRUE),
+            max.X = max(fft.X, na.rm = TRUE),
+            max.Y = max(fft.Y, na.rm =TRUE),
+            max.Z = max(fft.Z, na.rm = TRUE),
+            sd.X = sd(fft.X, na.rm = TRUE),
+            sd.Y = sd(fft.Y, na.rm =TRUE),
+            sd.Z = sd(fft.Z, na.rm = TRUE),
+            range.X = max.X - min.X,
+            range.Y = max.Y - min.Y,
+            range.Z = max.Z - min.Z,
+            pitch = mean(fft.pitch),
+            roll = mean(fft.roll),
+            odba = sum(abs.X, abs.Y, abs.Z)) %>%
+    mutate(type = "fine.fft")
+
+# train.data -> fine.data -> fine.raw + fine.fft
+
 ```
 
-```{r coarse scale data, eval=FALSE, include=FALSE}
+```{r coarse scale data prep, include = FALSE}
+coarse.data = train.data
+coarse.data <- coarse.data %>%
+     mutate(behaviour = recode(behaviour, 
+                               eat = "Eat",
+                               forage = "Slow",
+                               walk = "Slow",
+                               run = "Fast",
+                               sit = "Stationary",
+                               stand = "Stationary",
+                               lie = "Stationary"))
+coarse.data$index = rep(1:(nrow(coarse.data)/20), each = 20)
 
+coarse.data = coarse.data %>%
+  group_by(dog, behaviour, index) %>%
+  mutate(ra.x = rollmean(X, 20), # rolling mean for smoothing parameter
+         ra.y = rollmean(Y, 20),
+         ra.z = rollmean(Z, 20)) %>%
+  mutate(dy.X = X - ra.x, # to attain dynamic body acceleration to be used for ODBA
+         dy.Y = Y - ra.y,
+         dy.Z = Z - ra.z) %>%
+  mutate(abs.X = abs(dy.X), # absolute acceleration for ODBA
+         abs.Y = abs(dy.Y),
+         abs.Z = abs(dy.Z),
+         pitch = pitch(dy.X, dy.Y, dy.Z), # finding pitch raw accel
+         roll = roll(dy.Y, dy.Z)) %>% # finding roll raw accel
+  mutate(fft.X = Re(fft(X)), # FFT dataset
+         fft.Y = Re(fft(Y)),
+         fft.Z = Re(fft(Z))) %>%
+  mutate(fft.pitch = pitch(fft.X, fft.Y, fft.Z),
+         fft.roll = roll(fft.Y, fft.Z))
 
+coarse.raw = coarse.data %>%
+  group_by(dog, behaviour, index) %>%
+  summarize(behaviour = first(behaviour),
+            mean.X = mean(X, na.rm = TRUE),
+            mean.Y = mean(Y, na.rm =TRUE),
+            mean.Z = mean(Z, na.rm = TRUE),
+            min.X = min(X, na.rm = TRUE),
+            min.Y = min(Y, na.rm =TRUE),
+            min.Z = min(Z, na.rm = TRUE),
+            kurt.X = kurtosis(X, na.rm = TRUE),
+            kurt.Y = kurtosis(Y, na.rm =TRUE),
+            kurt.Z = kurtosis(Z, na.rm = TRUE),
+            skew.X = skewness(X, na.rm = TRUE),
+            skew.Y = skewness(Y, na.rm =TRUE),
+            skew.Z = skewness(Z, na.rm = TRUE),
+            max.X = max(X, na.rm = TRUE),
+            max.Y = max(Y, na.rm =TRUE),
+            max.Z = max(Z, na.rm = TRUE),
+            sd.X = sd(X, na.rm = TRUE),
+            sd.Y = sd(Y, na.rm =TRUE),
+            sd.Z = sd(Z, na.rm = TRUE),
+            range.X = max.X - min.X,
+            range.Y = max.Y - min.Y,
+            range.Z = max.Z - min.Z,
+            pitch = mean(pitch),
+            roll = mean(roll),
+            odba = sum(abs.X, abs.Y, abs.Z)) %>%
+    mutate(type = "coarse.raw")
 
+coarse.fft = coarse.data %>%
+  group_by(dog, behaviour, index) %>%
+  summarize(behaviour = first(behaviour),
+            mean.X = mean(fft.X, na.rm = TRUE),
+            mean.Y = mean(fft.Y, na.rm =TRUE),
+            mean.Z = mean(fft.Z, na.rm = TRUE),
+            min.X = min(fft.X, na.rm = TRUE),
+            min.Y = min(fft.Y, na.rm =TRUE),
+            min.Z = min(fft.Z, na.rm = TRUE),
+            kurt.X = kurtosis(fft.X, na.rm = TRUE),
+            kurt.Y = kurtosis(fft.Y, na.rm =TRUE),
+            kurt.Z = kurtosis(fft.Z, na.rm = TRUE),
+            skew.X = skewness(fft.X, na.rm = TRUE),
+            skew.Y = skewness(fft.Y, na.rm =TRUE),
+            skew.Z = skewness(fft.Z, na.rm = TRUE),
+            max.X = max(fft.X, na.rm = TRUE),
+            max.Y = max(fft.Y, na.rm =TRUE),
+            max.Z = max(fft.Z, na.rm = TRUE),
+            sd.X = sd(fft.X, na.rm = TRUE),
+            sd.Y = sd(fft.Y, na.rm =TRUE),
+            sd.Z = sd(fft.Z, na.rm = TRUE),
+            range.X = max.X - min.X,
+            range.Y = max.Y - min.Y,
+            range.Z = max.Z - min.Z,
+            pitch = mean(fft.pitch),
+            roll = mean(fft.roll),
+            odba = sum(abs.X, abs.Y, abs.Z)) %>%
+    mutate(type = "coarse.fft")
+
+#train.data -> coarse.data -> coarse.fft + raw.fft
+rf.data = rbind(fine.fft, fine.raw, coarse.fft, coarse.raw)
+#write.csv(rf.data, "2020-08-10_cleaned-coarse-data.txt")
 ```
 
-```{r rf model dataset preparation, include = FALSE}
-rf.data = read.csv("2020-07-20_cleaned-rf-data2.txt") # raw data file prep'n described above
-rf.data$behaviour = as.factor(rf.data$behaviour)
-rf.data$dog = NULL
+```{r rf model dataset preparation}
+rf.data = read.csv("2020-08-10_cleaned-coarse-data.txt")
 rf.data$X = NULL
-rf.data = as.data.frame(rf.data)
 rf.data$index = as.factor(row_number(rf.data$behaviour))
+rf.data$type = as.factor(rf.data$type)
 
 rf.data <- rf.data[order(runif(nrow(rf.data))),] # re-ordering the rows of the df
 
-rf.data_train <- rf.data %>% 
+# RAW.fine training dts
+fine.raw_train <- rf.data %>% 
+  filter(type == "fine.raw") %>%
   group_by(behaviour) %>%
   slice(seq(n()*.8)) #  take 80% of each behaviour classification
 
-rf.data_test = rf.data %>%
-  filter(!index %in% rf.data_train$index) # filter out rows that are NOT IN train dts
-rf.data_test$index = NULL #remove $index to avoid RF prediction compromise
-rf.data_train$index = NULL
+fine.raw_test = rf.data %>%
+  filter(type == "fine.raw") %>%
+  dplyr::filter(!index %in% fine.raw_train$index) # filter out rows that are NOT IN train dts
 
-psd.data = read.csv("2020-07-24_cleaned-psd-rf-data.txt") # data file for psd dataset
-psd.data$behaviour = as.factor(psd.data$behaviour)
-psd.data$X = NULL
-psd.data = as.data.frame(psd.data)
-psd.data$index = row_number(psd.data$behaviour)
 
-psd.data <- psd.data[order(runif(nrow(psd.data))),] 
-
-psd.data_train <- psd.data %>% 
+# RAW.coarse training dts
+coarse.raw_train <- rf.data %>% 
+  filter(type == "coarse.raw") %>%
   group_by(behaviour) %>%
-  slice(seq(n()*.8)) %>%
-  select(-burst)
+  slice(seq(n()*.8)) #  take 80% of each behaviour classification
+
+coarse.raw_test = rf.data %>%
+  filter(type == "coarse.raw") %>%
+  dplyr::filter(!index %in% coarse.raw_train$index) # filter out rows that are NOT IN train dts
 
 
-psd.data_test = psd.data %>%
-  filter(!index %in% psd.data_train$index) %>%
-  select(-burst)
+# FFT.fine training dts
+fine.fft_train <- rf.data %>% 
+  filter(type == "fine.fft") %>%
+  group_by(behaviour) %>%
+  slice(seq(n()*.8)) #  take 80% of each behaviour classification
 
-psd.data_train$index = NULL
-psd.data_test$index = NULL
+fine.fft_test = rf.data %>%
+  filter(type == "fine.fft") %>%
+  dplyr::filter(!index %in% fine.fft_train$index) # filter out rows that are NOT IN train dts
 
-# Make sure both datasets do not have any indexing columns (e.g., $index, or $burst)
-# only response and predictor variable, otherwise predictions will be near 100% in the 
-# mTry loops
+
+# FFT.coarse training dts
+coarse.fft_train <- rf.data %>% 
+  filter(type == "coarse.fft") %>%
+  group_by(behaviour) %>%
+  slice(seq(n()*.8)) #  take 80% of each behaviour classification
+
+coarse.fft_test = rf.data %>%
+  filter(type == "coarse.fft") %>%
+  dplyr::filter(!index %in% coarse.fft_train$index) # filter out rows that are NOT IN train dts
+
 ```
 
 # Results 
 
-For the purpose of building the tranining dataset of the RF model, I collected more than 400,000 raw acceleration measurements (per axis) and approximately 400 minutes of video footage from 11 kennel-trained domestic dogs. From the collected video footages, seven different dog behaviours were identified which included sitting, standing, lying, eating, walking, foraging, and running (`r table_nums('dogtask', display = 'cite')`). After identifying and cleaning the collected accleration measurements, approximately 3000 bursts of labelled acceleration data comprising of nearly 1,260,000 transformed acceleration measurements (from the three axes) were used to construct and train the RF model.
+For the purpose of building the tranining dataset of the RF model, I collected more than 400,000 raw acceleration measurements (per axis) and approximately 400 minutes of video footage from 11 kennel-trained domestic dogs. From the collected video footages, seven different dog behaviours were identified which included sitting, standing, lying, eating, walking, foraging, and running (`r table_nums('dogtask', display = 'cite')`). After identifying and cleaning the collected accleration measurements, approximately 3000 bursts of labelled acceleration data comprising of nearly 1,260,000 transformed acceleration measurements (from the three axes) were used to construct and train the RF model. The RF models constructed with the four types of datasets produced reliable classification performances as Out-of-Bag error rates remained relatively stable (`r fig_nums('oob', display = "cite")`).
 
-```{r raw data mtry loop, cache = TRUE}
+```{r mtry dataset prep, cache = TRUE}
 set.seed(2807)
+## Fine-scale raw mtry loop
+fine.raw_train$behaviour = droplevels(fine.raw_train$behaviour)
+fine.raw_train$index = NULL
+fine.raw_train$dog = NULL
+fine.raw_train$type = NULL
+
+fine.raw_test$behaviour = droplevels(fine.raw_test$behaviour)
+fine.raw_test$index = NULL
+fine.raw_test$dog = NULL
+fine.raw_test$type = NULL
+
 model.mtry = c() # Do 'mtry' loop to identify best value for mtry
-i=21
-for (i in 1:21) {
-  model.mtry.train <- randomForest(behaviour ~ ., data = rf.data_train, ntree = 500, mtry = i, importance = TRUE)
-  predTest.mtry <- predict(model.mtry.train, rf.data_test, type = "class")
-  model.mtry[i] = mean(predTest.mtry == rf.data_test$behaviour)
+i=24
+for (i in 1:24) {
+  model.mtry.train <- randomForest(behaviour ~ ., data = fine.raw_train, ntree = 500, mtry = i, importance = TRUE)
+  predTest.mtry <- predict(model.mtry.train, fine.raw_test, type = "class")
+  model.mtry[i] = mean(predTest.mtry == fine.raw_test$behaviour)
 }
 
-model.mtry.df = data.frame(mTry = c(1:21), Accuracy = c(model.mtry))
-model.mtry.df$Accuracy = percent(model.mtry.df$Accuracy)
-best.mtry = model.mtry.df %>%
+fine.raw.mtry = data.frame(mTry = c(1:24), Accuracy = c(model.mtry))
+fine.raw.mtry$Accuracy = percent(fine.raw.mtry$Accuracy)
+fine.raw.mtry$type = "fine.raw"
+
+raw.mtry = fine.raw.mtry %>%
   arrange(desc(Accuracy)) %>%
   slice(1)
 
+## Fine-scale FFT mtry loop
+fine.fft_train$behaviour = droplevels(fine.fft_train$behaviour)
+fine.fft_train$index = NULL
+fine.fft_train$dog = NULL
+fine.fft_train$type = NULL
 
-best.mtry = best.mtry$mTry
+fine.fft_test$behaviour = droplevels(fine.fft_test$behaviour)
+fine.fft_test$index = NULL
+fine.fft_test$dog = NULL
+fine.fft_test$type = NULL
 
-(ggplot(data = model.mtry.df, aes(x = mTry, y = Accuracy )) + 
-    geom_point(stat = "identity", size = 3,shape = "square",color = "red") + scale_y_continuous(labels = scales::percent)
+model.mtry = c() # Do 'mtry' loop to identify best value for mtry
+i=24
+for (i in 1:24) {
+  model.mtry.train <- randomForest(behaviour ~ ., data = fine.fft_train, ntree = 500, mtry = i, importance = TRUE)
+  predTest.mtry <- predict(model.mtry.train, fine.fft_test, type = "class")
+  model.mtry[i] = mean(predTest.mtry == fine.fft_test$behaviour)
+}
+
+fine.fft.mtry = data.frame(mTry = c(1:24), Accuracy = c(model.mtry))
+fine.fft.mtry$Accuracy = percent(fine.fft.mtry$Accuracy)
+fine.fft.mtry$type = "fine.fft"
+
+fft.mtry = fine.fft.mtry %>%
+  arrange(desc(Accuracy)) %>%
+  slice(1)
+
+## coarse-scale FFT mtry loop
+coarse.fft_train$behaviour = droplevels(coarse.fft_train$behaviour)
+coarse.fft_train$index = NULL
+coarse.fft_train$dog = NULL
+coarse.fft_train$type = NULL
+
+coarse.fft_test$behaviour = droplevels(coarse.fft_test$behaviour)
+coarse.fft_test$index = NULL
+coarse.fft_test$dog = NULL
+coarse.fft_test$type = NULL
+
+model.mtry = c() # Do 'mtry' loop to identify best value for mtry
+i=24
+for (i in 1:24) {
+  model.mtry.train <- randomForest(behaviour ~ ., data = coarse.fft_train, ntree = 500, mtry = i, importance = TRUE)
+  predTest.mtry <- predict(model.mtry.train, coarse.fft_test, type = "class")
+  model.mtry[i] = mean(predTest.mtry == coarse.fft_test$behaviour)
+}
+
+coarse.fft.mtry = data.frame(mTry = c(1:24), Accuracy = c(model.mtry))
+coarse.fft.mtry$Accuracy = percent(coarse.fft.mtry$Accuracy)
+coarse.fft.mtry$type = "coarse.fft"
+
+coarse.fft.mtry = coarse.fft.mtry %>%
+  arrange(desc(Accuracy)) %>%
+  slice(1)
+
+## coarse-scale raw mtry loop
+coarse.raw_train$behaviour = droplevels(coarse.raw_train$behaviour)
+coarse.raw_train$index = NULL
+coarse.raw_train$dog = NULL
+coarse.raw_train$type = NULL
+
+coarse.raw_test$behaviour = droplevels(coarse.raw_test$behaviour)
+coarse.raw_test$index = NULL
+coarse.raw_test$dog = NULL
+coarse.raw_test$type = NULL
+
+model.mtry = c() # Do 'mtry' loop to identify best value for mtry
+i=24
+for (i in 1:24) {
+  model.mtry.train <- randomForest(behaviour ~ ., data = coarse.raw_train, ntree = 500, mtry = i, importance = TRUE)
+  predTest.mtry <- predict(model.mtry.train, coarse.raw_test, type = "class")
+  model.mtry[i] = mean(predTest.mtry == coarse.raw_test$behaviour)
+}
+
+coarse.raw.mtry = data.frame(mTry = c(1:24), Accuracy = c(model.mtry))
+coarse.raw.mtry$Accuracy = percent(coarse.raw.mtry$Accuracy)
+coarse.raw.mtry$type = "coarse.raw"
+
+coarse.raw.mtry = coarse.raw.mtry %>%
+  arrange(desc(Accuracy)) %>%
+  slice(1)
+```
+```{r fine-scale mtry ggplot, include = FALSE}
+fine.scale.mtry = rbind(fine.fft.mtry, fine.raw.mtry)
+fine.scale.mtry$type = as.factor(fine.scale.mtry$type)
+
+(ggplot(data = fine.scale.mtry, aes(x = mTry, y = Accuracy, color = type)) +
+    geom_line() +
+    geom_point(size = 3) +
+    scale_y_continuous(labels = scales::percent) + 
+    scale_color_manual(values = c("red", "blue")) +    # Red = fft, blue = raw
+    xlab("Number of predictor variables used (mTry value)") + 
+    ylab("Prediction accuracy") + 
+    theme_minimal() + 
+    theme(legend.position = "none")
+
 )
 
 ```
-`r fig_nums('mtry')`
-
-From `r fig_nums('mtry', display = 'cite')`, it was found that the constructed RF model had the highest prediction accuracy when only four predictor variables were available or used when describing the differences between each movement behaviour. At present, the results from `r fig_nums('mtry', display = 'cite')` found that the difference in selecting between the best (i.e., 4) and worst (i.e., 1 or 20) performing mTry parameter resulted in an approximate 1% difference in mean prediction accuracy which suggests that the current RF model predictive capabilities, in spite of the large number of predictor variables used, is relatively consistent.
-
 ```{r rf model construction}
 set.seed(2807)
-raw.model = randomForest(behaviour ~., data = rf.data_train, 
-                        method = "class", ntree = 500, mtry = best.mtry)
-raw.predTest = predict(raw.model, rf.data_test, type = "class")
-# 
-# PSD model removed for the time-being. Too much info ?
-# psd.model = randomForest(behaviour ~., data = psd.data_train, 
-#                         method = "class", ntree = 500, mtry = psd.best.mtry)
-# psd.predTest = predict(psd.model, psd.data_test, type = "class")
+fft.model = randomForest(behaviour ~., data = fine.fft_train, 
+                        method = "class", ntree = 500, mtry = as.integer(fft.mtry[1]))
+fft.predTest = predict(fft.model, fine.fft_test, type = "class")
+
+raw.model = randomForest(behaviour ~., data = fine.raw_train, 
+                        method = "class", ntree = 500, mtry = as.integer(raw.mtry[1]))
+raw.predTest = predict(raw.model, fine.raw_test, type = "class")
+
+coarse.model = randomForest(behaviour ~., data = coarse.fft_train, 
+                        method = "class", ntree = 500, mtry = as.integer(coarse.fft.mtry[1]))
+coarse.predTest = predict(coarse.model, coarse.fft_test, type = "class")
+
+coarse.raw.model = randomForest(behaviour ~., data = coarse.raw_train, 
+                        method = "class", ntree = 500, mtry = as.integer(coarse.raw.mtry[1]))
+coarse.raw.predTest = predict(coarse.raw.model, coarse.raw_test, type = "class")
 
 ```
-
-`r fig_nums('varimp', display = 'cite')` demonstrates the mean decrease in Gini index in the predictor variables used for decision-making in the RF model. Node purity (as represented by the Gini index) refers to how well the trees split the data (i.e., decision-making) and predictor variables with a higher decrease in Gini index represents a a purer node that makes has greater importance in the RF model predictive and decision making capacity. In any case, the removal of the top-most predictor variable (hence, highest decrease in Gini index) will result in a RF model with poorer prediction accuracies. 
-
-``` {r variable importance} 
-#importance(model)
-varImpPlot(raw.model, main = "")
+``` {r variable importance prep, include = FALSE} 
+f.imp = varImpPlot(fft.model, main = "FFT")
+f.imp = as.data.frame(f.imp)
+f.imp$type = "FFT"
+f.imp$varnames = rownames(f.imp)
+r.imp = varImpPlot(raw.model, main = "RAW")
+r.imp = as.data.frame(r.imp)
+r.imp$type = "Raw"
+r.imp$varnames = rownames(r.imp)
+imp.plot = rbind(f.imp, r.imp)
+imp.plot$type = as.factor(imp.plot$type)
+ip = melt(imp.plot, varnames = 'varnames')
+```
+```{r variable importance ggplot, include = FALSE}
+(ggplot(ip, aes(x = reorder(varnames, value), y = value, fill = type))+
+    geom_bar(stat = 'identity', position = 'dodge') +
+    scale_fill_manual(values = c("red", "blue")) + 
+    ylab("Node purity") + 
+    xlab("Predictor variables") + 
+    theme_classic() + 
+    theme(legend.position = "none")
+  
+)
 #Importance of each variable for behaviour prediction accuracy
-
 ```
-`r fig_nums('varimp')`
+```{r OOB error ggplot}
+# plot(fft.model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees", main = "fft dataset")
+oob.df = data.frame(index = c(1:500), 
+                    FFT = fft.model$err.rate[,1], 
+                    Raw = raw.model$err.rate[,1],
+                    CFFT = coarse.model$err.rate[,1],
+                    CRAW = coarse.raw.model$err.rate[,1])
 
-Using the selected mTry value as reference (`r fig_nums('mtry', display = 'cite')`, mTry value of 4), it is suggestive that the Y axis may have a larger role in differentiating between the different movement behaviours and postures as the important predictor variables used in the RF model included a higher number of statistical transformations (i.e., 2 out of 4) derived from the Y axis (i.e., standard deviation of Y; sd.y, and range of Y; range.y). In addition, the ten most predictor variables in `r fig_nums('mtry', display = 'cite')` also found the statistical transformations of the Y axis were more prevalent than those from the X and Z axis (e.g., 40%, 30% and 30%; Y, X and Z respectively).
-
-With regards to predictive stability in the cosntructed RF model, `r fig_nums('oob')` found that the Out-of-Bag error rates remained relatively stable after 100 trees were grown. Despite using 500 trees to develop the RF model, the average run-time for predicting on the testing dataset (remaining 20% of the subsampled labelled acceleration dataset; approximately 600 bursts of accleration measurements) took approximately two minutes. As such, increasing the number of trees used in the RF model will not significantly improve its predictive capacity, hence the trade-off between run-time and predictive power may not be feasible when larger datasets are used in the subsequent chapters.
-
-```{r ntree out-of-bag OOB error}
-plot(raw.model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
-
-# plot(psd.model$err.rate[,1], ylab = "Out-Of-Bag Error Rate estimate", xlab = "Number of trees")
-#shows the stability of the randomforest prediction after X no. of trees / importance of ntree
+(ggplot(data = oob.df, aes(x = index)) +
+    xlab("Number of trees") +
+    ylab("Out-of-bag Error rate") +
+    geom_point(aes(y = FFT), color = "red") + # Red = FFT
+    geom_point(aes(y = Raw), color = 'blue') + # blue = Raw
+    geom_point(aes(y = CFFT), color = "green") + 
+    geom_point(aes(y = CRAW), color = 'purple') +
+    scale_y_continuous(labels = scales::percent) +
+    theme_classic()
+  )
 ```
 `r fig_nums('oob')`
+\newpage
 
-`r table_nums('trainpred')`
-```{r rf model prediction training dataset inaccuracy}
-# stargazer(model$confusion, type = "text", summary = F)
-results.col = c("eat","forage","lie","run","sit","stand","walk")
-raw.results = 1-raw.model$confusion[,8]
-# psd.results = 1-psd.model$confusion[,8]
-# model.results = as.data.frame(cbind(results.col, raw.results, psd.results))
-# model.results$raw.results = percent(1-raw.model$confusion[,8])
-# model.results$psd.results = percent(1-psd.model$confusion[,8])
-# rownames(model.results) = c()
+`r table_nums('fft.train')`
+``` {r FFT fine-scale table}
+fft.results = fft.model$confusion[,1:7] # fft fine-scale train set
 
-raw.model.df = as.data.frame(raw.model$confusion[,1:7])
-raw.model.df$accuracy = percent(1-raw.model$confusion[,8])
-
-kable(raw.model.df) %>%
-  kable_styling(full_width = F, position = "center")
-
-# psd.model.df = as.data.frame(psd.model$confusion[,1:7])
-# psd.model.df$accuracy = percent(1-psd.model$confusion[,8])
-# stargazer(psd.model.df, type = "text", summary = F)
-
-#Table for model for raw 2 sec burst training data
-```
-
-Looking at the RF model predictive capabilities on the training dataset (i.e., subsampled 80% of the labelled acceleration dataset), the RF model was found to predict movement-based behaviours (e.g., 'Run', 'Walk' and 'Forage') more accurately than non-movement based behaviours (e.g., 'Lie', 'Sit', and 'Stand'). For example, 'Run' and 'Walk' had comparatively higher prediction accuracies (`r raw.model.df[4,8]` and `r raw.model.df[7,8]`, respectively) whereas 'Sit', 'Stand', and 'Walk' were mis-classified twice as much (approximately `r 1-mean(raw.model.df[c(3,5,6),8])`). The poor predictive capabilities on non-movement behaviours was likely attributed to the the RF model inability to differentiate between the different postures held during non-movement behaviour tasks. For example, 'Lie' and 'Sit' often mis-classified interchangeably (e.g., 'Sit' as 'Lie', `r percent(raw.model.df[3,5]/sum(raw.model.df[3,1:7]))`; and 'Lie' as 'Sit', `r percent(raw.model.df[5,3]/sum(raw.model.df[5,1:7]))`) while the mis-classification for 'Stand' were evenly distributed between 'Lie', 'Sit' and 'Walk' (e.g., `r percent(raw.model.df[6,3]/sum(raw.model.df[6,1:7]))`, `r percent(raw.model.df[6,5]/sum(raw.model.df[6,1:7]))` and `r percent(raw.model.df[6,7]/sum(raw.model.df[6,1:7]))`, respectively).
-
-Not surprisingly, the RF model had the lowest prediction rates for the 'Forage' and 'Eat' behaviours (`r raw.model.df[1,8]` and `r raw.model.df[2,8]`, respectively). As discussed previously, it is likely that the RF model was unable to accurately predict 'Forage' and 'Eat' accurately as these behaviours bear strong postural and movement resemblance to 'Walk' and 'Lie' (e.g., `r percent(raw.model.df[1,3]/sum(raw.model.df[1,1:7]))` and `r percent(raw.model.df[2,7]/sum(raw.model.df[2,1:7]))`, respectively). For example, the 'Eat' behaviour represents the dog in-study consuming or drinking from a bowl and the these dogs often assume a lying position in the duration of this behavioural task. Likewise, the 'Forage' behaviour can be difficult for the RF model to differentiate from the 'Walk' behaviour as the behavioural task for 'Forage' was represented by the dog in-study walking with its head angled downwards (`r fig_nums('dogtask', display = 'cite')`).
-
-`r table_nums('testpred')`
-``` {r RF prediction testing data results}
-rf.table = table(rf.data_test$behaviour, raw.predTest)
-rf.table = as.data.frame.matrix(rf.table) # 
-
-accuracy = vector()
-for (i in 1:nrow(rf.table)) {
-
-  accuracy[i] = rf.table[i,i]/sum(rf.table[i,])
+fft.accu = 0
+for (i in 1: nrow(fft.results)) {
+  fft.accu = percent(fft.accu + fft.results[i,i]/sum(fft.results))
 }
 
-rf.table = cbind(rf.table, accuracy)
-rf.table = as.data.frame(rf.table)
-rf.table$accuracy = percent(rf.table$accuracy)
+precision = vector()
+for (i in 1:nrow(fft.results)) {
+  precision[i] = fft.results[i,i]/sum(fft.results[i,])
+}
+precision = percent(precision)  
 
-kable(rf.table) %>%
-  kable_styling(full_width = F, position = "center")
+recall = vector()
+for (i in 1:ncol(fft.results)) {
+  recall[i] = fft.results[i,i]/sum(fft.results[,i])
+}
+recall = percent(recall)
 
-cp = percent(mean(raw.predTest == rf.data_test$behaviour)) # The mean no. of correct predictions based on the train dataset model in the test dataset
+fft.model.df = data.frame(Behaviour = c("Eat", "Forage", "Lie", "Run", "Sit", "Stand", "Walk"),
+                             Eat = as.integer(fft.results[,1]),
+                             Forage = as.integer(fft.results[,2]),
+                             Lie = as.integer(fft.results[,3]),
+                             Run = as.integer(fft.results[,4]),
+                             Sit = as.integer(fft.results[,5]),
+                             Stand = as.integer(fft.results[,6]),
+                             Walk = as.integer(fft.results[,7]),
+                          Precision = precision,
+                          Recall = recall,
+                             check.names = FALSE)
+
+kable(fft.model.df, 'latex', booktabs = T) %>%
+  row_spec(1, bold = T) %>%
+  column_spec(1, bold = T)
 ```
 
-As with most RF models, overfitting (i.e., is a common occurence when the constructed RF model is tasked to predict on the remaining subsampled testing dataset. Even though overall prediction accuracy between the training and testing datasets differed slightly (`r percent(1528/2072)` and `r cp`, respectively), the prediction accuracies of individual behaviours in the testing dataset may be significantly worse (`r table_nums('testpred', display = 'cite')`). For example, the mis-classification rates for 'Eat' and 'Forage' increased by `r raw.model.df[1,8]-rf.table[1,8]` and `r raw.model.df[2,8]-rf.table[2,8]` respectively yet the prediction accuracies for 'Lie' and 'Sit' improved slightly (< 10%). Nevertheless, it is likely that these discrepancies in the prediction accuracies of individual behaviours were caused by the reduced sampling size of the testing dataset as the overall prediction accuracy for both datasets were still found to be comparable.
+`r table_nums('raw.train')`
+```{r Raw fine-scale table}
+raw.results = raw.model$confusion[,1:7]
 
-```{r reading acc-thr data, include = FALSE}
+raw.accu = 0
+for (i in 1: nrow(raw.results)) {
+  raw.accu = percent(raw.accu + raw.results[i,i]/sum(raw.results))
+}
+
+precision = vector()
+for (i in 1:nrow(raw.results)) {
+  precision[i] = raw.results[i,i]/sum(raw.results[i,])
+}
+precision = percent(precision)  
+
+recall = vector()
+for (i in 1:ncol(raw.results)) {
+  recall[i] = raw.results[i,i]/sum(raw.results[,i])
+}
+recall = percent(recall)
+
+raw.model.df = data.frame(Behaviour = c("Eat", "Forage", "Lie", "Run", "Sit", "Stand", "Walk"),
+                             Eat = as.integer(raw.results[,1]),
+                             Forage = as.integer(raw.results[,2]),
+                             Lie = as.integer(raw.results[,3]),
+                             Run = as.integer(raw.results[,4]),
+                             Sit = as.integer(raw.results[,5]),
+                             Stand = as.integer(raw.results[,6]),
+                             Walk = as.integer(raw.results[,7]),
+                          Precision = precision,
+                          Recall = recall,
+                             check.names = FALSE)
+
+kable(raw.model.df, "latex", booktabs = T) %>%
+  row_spec(1, bold = T) %>%
+  column_spec(1, bold = T)
+```
+- Comparing between fine-scale models (`r table_nums('fft.train', display = "cite")`, `r table_nums('raw.train', display = "cite")`), the RAW dataset produced an overall classification accuracy of `r raw.accu` while the FFT dataset produced an overall classification accuracy of `r fft.accu`.
+- Looking specifically at the precision of fine-scale model's classification, both models were found to classify movement-based behaviours (e.g., 'Run', 'Walk' and 'Forage') more positively than non-movement based behaviours (e.g., 'Lie', 'Sit', and 'Stand'). 
+
+- For both models, 'Eat' was classified most poorly in comparison to the other behaviours, with the FFT dataset performing comparatively better.
+- In addition, it appears that the mis-classification of behaviours tend to occur interchangeably. E.g., 'Sit' as 'Lie', ; and 'Lie' as 'Sit' while the mis-classification for 'Stand' tends to be distributed evenyl between 'Lie', 'Sit' and 'Walk'.
+- Looking at models' sensitivity (or recall ability) to predict individual behaviours, both models performed relatively well with most accuracies averaging above 65%. This suggests that both models are able to perform relatively well at behaviour predictions.
+
+`r table_nums('coarse.raw.train')`
+```{r RAW coarse-scale table}
+coarse.raw.results = coarse.raw.model$confusion[,1:4]
+
+coarse.raw.accu = 0
+for (i in 1: nrow(coarse.raw.results)) {
+  coarse.raw.accu = percent(coarse.raw.accu + coarse.raw.results[i,i]/sum(coarse.raw.results))
+}
+
+precision = vector()
+for (i in 1:nrow(coarse.raw.results)) {
+  precision[i] = coarse.raw.results[i,i]/sum(coarse.raw.results[i,])
+}
+precision = percent(precision)  
+
+recall = vector()
+for (i in 1:ncol(coarse.raw.results)) {
+  recall[i] = coarse.raw.results[i,i]/sum(coarse.raw.results[,i])
+}
+recall = percent(recall)
+
+coarse.raw.model.df = data.frame(Behaviour = c("Eat", "Fast", "Slow", "Stationary"),
+                             Eat = as.integer(coarse.raw.results[,1]),
+                             Fast = as.integer(coarse.raw.results[,2]),
+                             Slow = as.integer(coarse.raw.results[,3]),
+                             Stationary = as.integer(coarse.raw.results[,4]),
+                             Precision = precision,
+                             Recall = recall,
+                             check.names = FALSE)
+
+kable(coarse.raw.model.df, "latex", booktabs = T) %>%
+    row_spec(1, bold = T) %>%
+  column_spec(1, bold = T)
+```
+
+`r table_nums('coarse.train')`
+```{r FFT coarse-scale table}
+coarse.results = coarse.model$confusion[,1:4]
+
+coarse.accu = 0
+for (i in 1: nrow(coarse.results)) {
+  coarse.accu = percent(coarse.accu + coarse.results[i,i]/sum(coarse.results))
+}
+
+precision = vector()
+for (i in 1:nrow(coarse.results)) {
+  precision[i] = coarse.results[i,i]/sum(coarse.results[i,])
+}
+precision = percent(precision)  
+
+recall = vector()
+for (i in 1:ncol(coarse.results)) {
+  recall[i] = coarse.results[i,i]/sum(coarse.results[,i])
+}
+recall = percent(recall)
+
+coarse.model.df = data.frame(Behaviour = c("Eat", "Fast", "Slow", "Stationary"),
+                             Eat = as.integer(coarse.results[,1]),
+                             Fast = as.integer(coarse.results[,2]),
+                             Slow = as.integer(coarse.results[,3]),
+                             Stationary = as.integer(coarse.results[,4]),
+                             Precision = precision,
+                             Recall = recall,
+                             check.names = FALSE)
+
+kable(coarse.model.df, "latex", booktabs = T) %>%
+    row_spec(1, bold = T) %>%
+  column_spec(1, bold = T)
+```
+- Comparing between coarse-scale models (`r table_nums('coarse.raw.train', display = "cite")`, `r table_nums('coarse.train', display = "cite")`), both types of datasets produced comparable prediction accuracies. I.e., RAW `r coarse.raw.accu` vs FFT `r coarse.accu`.
+- Similar to the fine-scale behaviour predictions, both coarse-scale models produce non-discernabable differences in precision (i.e., correct behaviour classification) and recall ability (i.e., positive behaviour prediction) between them.
+
+`r table_nums('grouped.train')`
+```{r grouped comparison table}
+fft.results.df= as.data.frame(fft.results)
+
+grouped.slow = fft.results.df$forage + fft.results.df$walk
+grouped.stationary = fft.results.df$lie + fft.results.df$sit + fft.results.df$stand
+grouped.fast = fft.results.df$run
+grouped.eat = fft.results.df$eat
+
+grouped.results = data.frame(Behaviour = c("Eat", "Fast", "Slow", "Stationary"),
+                                  Eat = c(grouped.eat[1], grouped.eat[4], grouped.eat[2] + grouped.eat[7], grouped.eat[3] + grouped.eat[5] + grouped.eat[6]),
+                     Fast = c(grouped.fast[1], grouped.fast[4], grouped.fast[2] + grouped.fast[7], grouped.fast[3] + grouped.fast[5] + grouped.fast[6]),
+                     Slow = c(grouped.slow[1], grouped.slow[4], grouped.slow[2] + grouped.slow[7], grouped.slow[3] + grouped.slow[5] + grouped.slow[6]),
+                     Stationary = c(grouped.stationary[1], grouped.stationary[4], grouped.stationary[2] + grouped.stationary[7], grouped.stationary[3] + grouped.stationary[5] + grouped.stationary[6]))
+
+grouped.accu = 0
+for (i in 1:nrow(grouped.results)) {
+  grouped.accu = percent(grouped.accu + grouped.results[i,i+1]/sum(grouped.results[1:4, 2:5]))
+}
+
+precision = vector()
+for (i in 1:nrow(grouped.results)) {
+  precision[i] = grouped.results[i,i+1]/sum(grouped.results[i,2:5])
+}
+precision = percent(precision)  
+
+recall = vector()
+for (i in 2:ncol(grouped.results)) {
+  recall[i-1] = grouped.results[i-1,i]/sum(grouped.results[1:4,i])
+}
+recall = percent(recall)
+
+grouped.results = data.frame(Behaviour = c("Eat", "Fast", "Slow", "Stationary"),
+                                  Eat = c(grouped.eat[1], grouped.eat[4], grouped.eat[2] + grouped.eat[7], grouped.eat[3] + grouped.eat[5] + grouped.eat[6]),
+                     Fast = c(grouped.fast[1], grouped.fast[4], grouped.fast[2] + grouped.fast[7], grouped.fast[3] + grouped.fast[5] + grouped.fast[6]),
+                     Slow = c(grouped.slow[1], grouped.slow[4], grouped.slow[2] + grouped.slow[7], grouped.slow[3] + grouped.slow[5] + grouped.slow[6]),
+                     Stationary = c(grouped.stationary[1], grouped.stationary[4], grouped.stationary[2] + grouped.stationary[7], grouped.stationary[3] + grouped.stationary[5] + grouped.stationary[6]),
+                     Precision = precision,
+                     Recall = recall)
+
+grouped.results %>%
+  kable(format = "latex", booktabs = T) %>%
+    row_spec(1, bold = T) %>%
+    column_spec(1, bold = T)
+
+```
+- Unlike the fine-scale behaviour models, the precision of coarse-scale models were noticeably higher, except for the 'Eat' behaviour, of which the fine-scale model were more precised
+- In addition, the grouped fine-scale behaviour model (grouped behaviour model; `r table_nums('grouped.train', display = "cite")`) produced an classification accuracy of `r grouped.accu` which was comparable to classification from both coarse-scale models.
+- However, the grouped behaviour model performed significantly better due to the higher classification accuracy for the 'Eat' behaviour, which can be useful for fine-scale behaviour examination.
+
+
+
+```{r reading acc-thr data}
 df = read.csv("2020-07-20_mla-train-data.csv")
 df$X = NULL
 df$dog = as.factor("newguys")
@@ -378,7 +835,8 @@ move = rbind(walk, run, forage)
 still = rbind (lie, sit, stand)
 
 ```
-```{r estimating variance values for behaviours, include = FALSE}
+
+```{r acc-thr prep}
 walk = walk[1:(round(nrow(walk)/26)*26),]
 walk$index = rep(1:(nrow(walk)/26), each = 26)
 
@@ -440,51 +898,84 @@ stand.var = stand %>%
             var.y = var(Y),
             var.z = var(Z)) %>%
   mutate(behaviour = "stand")
-```
-`r table_nums("accthrtable")`
-```{r table acc-thr}
+
+eat = eat[1:(round(nrow(eat)/26)*26),]
+eat$index = rep(1:(nrow(eat)/26), each = 26)
+
+eat.var = eat %>%
+  group_by(dog,index) %>%
+  summarise(var.x = var(X),
+            var.y = var(Y),
+            var.z = var(Z)) %>%
+  mutate(behaviour = "eat")
+
 move = rbind(walk.var, run.var, forage.var)
 move = na.omit(move)
 move$behavior = as.factor(move$behaviour)
 
 
-still = rbind(lie.var, sit.var, stand.var)
+still = rbind(eat.var, lie.var, sit.var, stand.var)
 still = na.omit(still)
 still$behaviour = as.factor(still$behaviour)
 
-df.all = rbind(run.var, forage.var, walk.var, stand.var, sit.var, lie.var)
+df.all = rbind(eat.var, run.var, forage.var, walk.var, stand.var, sit.var, lie.var)
 df.all = na.omit(df.all)
 df.all$behaviour = as.factor(df.all$behaviour)
+```
 
-all.variance.table = df.all %>% # The greatest difference between variance values are in axis Z
+`r table_nums("accthrtable")`
+```{r acc-thr}
+mean.variance = df.all %>% # The greatest difference between variance values are in axis Z
   group_by(behaviour) %>%
   summarise(mean.X = mean(var.x),
             mean.Y = mean(var.y),
             mean.Z = mean(var.z)) %>%
   arrange(mean.Z)
 
-kable(all.variance.table) %>%
-  kable_styling(full_width = F, position = "center")
+median.variance = df.all %>% # The greatest difference between variance values are in axis Z
+  group_by(behaviour) %>%
+  summarise(median.X = median(var.x),
+            median.Y = median(var.y),
+            median.Z = median(var.z)) %>%
+  arrange(median.Z)
 
+
+all.variance.table = data.frame(Activity = c(rep("Resting", 4), rep("Movement", 3)),
+                                Behaviour = c("Lie", "Eat", "Sit", "Stand", "Forage", "Walk", "Run"),
+                                X = mean.variance$mean.X,
+                                Y = mean.variance$mean.Y,
+                                Z = mean.variance$mean.Z,
+                                X = median.variance$median.X,
+                                Y = median.variance$median.Y,
+                                Z = median.variance$median.Z,
+                                check.names = F)
+
+all.variance.table %>%
+  kable(format = "latex", booktabs = T, align = 'c') %>%
+  kable_styling(latex_options = 'scale_down', position = "center") %>%
+  column_spec(1, bold = T) %>%
+  collapse_rows(columns = 1, latex_hline = "major", valign = "middle") %>%
+  add_header_above(c(" " = 2, "Mean" = 3, "Median" = 3))
 ```
 
 Using the variances calculated from the labelled acceleration measurements (`r table_nums("accthrtable", display = 'cite')`), I sampled a range of variance values between 'Stand' and 'Forage' across the three axes to identify a variance threshold value (VTV) that could consistently initiate the collection of short-bursts GPS re-locations in the wildlife tracking collar. To do this, I used the `rle()` function from base `R` to examine and count the frequency of which a feasible VTV (from the range of feasible variance values) is met or exceeded by the variance of movement-based labelled acceleration measurements across the three axes. The VTV that determines the highest frequency of met or exceeded variance values was then used to program the wildlife tracking collar for the dog walking experiment.
 
-```{r ground truthing the acc-thr value}
+```{r acc-thr ggplot}
 match = read.csv('2020-07-21_acc-thr_gps-cleaned2.csv') # manual-cleaned gps data
 match$burst = match$X
 match$time.diff4 = as.factor(match$time.diff3)
 
 match$minutes = match$sampled.time/60
 
-ggplot(match, aes(x = minutes)) +
+(ggplot(match, aes(x = minutes)) +
   geom_line(aes(y = var.x), color = 'red') + 
   geom_line(aes(y = var.y), color = 'green') + 
   geom_line(aes(y = var.z), color = 'blue') + 
   geom_point(aes(y = as.numeric(time.diff3*50000)), size = 2) + 
   scale_y_continuous("Variance in acceleration", sec.axis = sec_axis(~ . / 50000, name = "Presence of quick burst GPS")) + 
-  labs( x = "Sampling duration [min]")
-
+  labs( x = "Sampling duration [min]") + 
+  theme_classic()
+)
 # Set acc-thr as decided in above section in the gps collar, and 
 # took 4 different dogs for a walk with a planned route.
 ```
@@ -494,9 +985,9 @@ With the VTV identified and programmed into the collar, `r fig_nums("accthrplot"
 
 # Discussion
 
-
-- no real need to prune the RF model even with 21 p.v as analysis ran relatively quick and n trees used also showed consistency.
-- average run time was less than a minute
+- The fine-scale models have the lowest classification rates for 'Forage' and 'Eat' behaviours.
+- As discussed previously, it is likely that the RF model was unable to accurately predict 'Forage' and 'Eat' accurately as these behaviours bear strong postural and movement resemblance to 'Walk' and 'Lie' (e.g.,  and, respectively). 
+- E.g., the 'Eat' behaviour represents the dog in-study consuming or drinking from a bowl and the these dogs often assume a lying position in the duration of this behavioural task. Likewise, the 'Forage' behaviour can be difficult for the RF model to differentiate from the 'Walk' behaviour as the behavioural task for 'Forage' was represented by the dog in-study walking with its head angled downwards (`r fig_nums('dogtask', display = 'cite')`).
 
 # Conclusion
 
@@ -538,7 +1029,57 @@ model.individual.behaviour.plot = model.individual.behaviour.plot + coord_flip()
 model.individual.behaviour.plot 
 ```
 
+```{r testing data prep, include = FALSE, eval = FALSE}
+fft.table = table(fine.fft_test$behaviour, fft.predTest) # FFT fine-scale test set
+fft.table = as.data.frame.matrix(fft.table) # 
 
+accuracy = vector()
+for (i in 1:nrow(fft.table)) {
+  accuracy[i] = fft.table[i,i]/sum(fft.table[i,])
+}
+
+fft.table = cbind(fft.table, accuracy)
+fft.table = as.data.frame(fft.table)
+fft.table$accuracy = percent(fft.table$accuracy)
+
+raw.table = table(fine.raw_test$behaviour, raw.predTest) # raw fine-scale test set
+raw.table = as.data.frame.matrix(raw.table)  
+
+accuracy = vector()
+for (i in 1:nrow(raw.table)) {
+  accuracy[i] = raw.table[i,i]/sum(raw.table[i,])
+}
+
+raw.table = cbind(raw.table, accuracy) 
+raw.table = as.data.frame(raw.table)
+raw.table$accuracy = percent(raw.table$accuracy)
+```
+
+```{r fft and raw comparison table, eval = FALSE, include = FALSE}
+fft.model.df$accuracy = percent(c(fft.model.df[1,2], fft.model.df[2,3],
+                                  fft.model.df[3,4],fft.model.df[4,5], fft.model.df[5,6],
+                                  fft.model.df[6,7], fft.model.df[7,8]))
+
+raw.model.df$accuracy = percent(c(raw.model.df[1,2], raw.model.df[2,3],
+                                  raw.model.df[3,4], raw.model.df[4,5], raw.model.df[5,6], raw.model.df[6,7],
+                                  raw.model.df[7,8]))
+
+fft.raw.comparison = data.frame(Behaviour = c("Eat", "Forage", "Lie", "Run", "Sit", "Stand", "Walk"),
+                                FFT = fft.model.df$accuracy,
+                                Raw = raw.model.df$accuracy,
+                                Improvement = c(fft.model.df$accuracy- raw.model.df$accuracy),
+                                FFT = fft.table$accuracy,
+                                Raw = raw.table$accuracy,
+                                Improvement = c(fft.table$accuracy-raw.table$accuracy),
+                                check.names = FALSE)
+
+
+fft.raw.comparison %>%
+  kable(format = "latex", booktabs = T) %>%
+  kable_styling(position = 'center') %>%
+  add_header_above(c(" " = 1, "Training datasets" = 3, "Testing datasets" = 3),
+                   bold = T, italic = T)
+```
 
 ```{r psd dataset prep, eval=FALSE, include=FALSE}
 
